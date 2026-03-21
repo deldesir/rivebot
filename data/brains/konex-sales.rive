@@ -1,0 +1,47 @@
+! version = 2.0
+
+// ════════════════════════════════════════════════════════════════════
+//  Konex Sales Brain — persona: konex-sales
+//
+//  Design:
+//    - Casual, emoji-heavy, Haitian Creole focused
+//    - Upselling, plan comparison, flow triggers
+//    - Substitutions in global.rive translate Creole BEFORE matching
+//    - AI fallback handles all free-form sales queries
+// ════════════════════════════════════════════════════════════════════
+
+> topic random
+
+  // ── Help ──
+  + help
+  - 👋 *Konex Sales — Mwen ka ede w ak:*\n\n• *plans* — wè tout plan yo\n• *upgrade* — chanje plan w\n• *promo* — pwomosyon ki disponib\n• *my account* — enfòmasyon kont ou\n\nOswa mande m nenpòt kesyon sou sèvis nou!
+
+  + what can you do
+  @ help
+
+  // ── Plan info (static text) ──
+  + (plans|plan|forfait|forfè)
+  - 📱 *Plan Konex yo:*\n\n• *Basic* — 250 HTG/mwa (1GB, 50 min)\n• *Standard* — 500 HTG/mwa (5GB, unlimited min)\n• *Premium* — 1000 HTG/mwa (unlimited data + min)\n\nTape *upgrade* pou chanje plan w!
+
+  + (price|pri|konbyen|combien) [*]
+  @ plans
+
+  // ── Upgrade / upsell triggers ──
+  + (upgrade|monte|chanje plan) [*]
+  - 🚀 Kite m ede w monte plan w! M ap voye w yon fòm pou chwazi.\n<call>start_flow upgrade_flow</call>
+
+  + (promo|pwomosyon|promotion|deal) [*]
+  - 🎉 Tcheке pwomosyon ki disponib kounye a:\n<call>start_flow promo_check</call>
+
+  // ── Account info ──
+  + (my|mon) (account|kont|profil|profile)
+  - <call>fetch_dossier</call>
+
+  + show [my] (account|profile)
+  - <call>fetch_dossier</call>
+
+  // ── AI fallback ──
+  + *
+  - {{ai_fallback}}
+
+< topic

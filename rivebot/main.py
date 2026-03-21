@@ -91,6 +91,15 @@ async def set_topic(req: SetTopicRequest) -> dict:
                    f"Available: {known_topics}",
         )
 
+    # Forward-only guard: never regress to an earlier stage
+    _ORDER = ["random", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "stage_6"]
+    current = rs.get_uservar(req.user, "topic") or "random"
+    curr_idx = _ORDER.index(current) if current in _ORDER else 0
+    next_idx = _ORDER.index(req.topic) if req.topic in _ORDER else 0
+    if next_idx <= curr_idx:
+        logger.info(f"[topic] {req.persona}:{req.user} — already at {current}, not regressing to {req.topic}")
+        return {"ok": False, "user": req.user, "topic": current, "reason": f"Already at {current}"}
+
     rs.set_uservar(req.user, "topic", req.topic)
     logger.info(f"[topic] {req.persona}:{req.user} → {req.topic}")
     return {"ok": True, "user": req.user, "topic": req.topic}

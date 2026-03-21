@@ -65,6 +65,13 @@ def load_persona(persona: str) -> bool:
     return True
 
 
+def get_engine(persona: str) -> Optional[RiveScript]:
+    """Return the active RiveScript instance for a persona, loading if needed."""
+    if persona not in _engines:
+        load_persona(persona)
+    return _engines.get(persona)
+
+
 def reload_all() -> dict[str, bool]:
     """Reload all known persona engines. Returns status per persona."""
     results = {}

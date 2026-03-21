@@ -103,19 +103,24 @@ async def call_macro(name: str, args: str, user_id: str) -> str:
 
 
 def call_macro_sync(name: str, args: str, user_id: str = "user") -> str:
-    """Sync wrapper for call_macro — used by the RiveScript Python macro handler."""
+    """Sync wrapper for call_macro — used by the RiveScript Python macro handler.
+
+    RiveScript calls this from a synchronous context. We need to run the async
+    call_macro() without nesting inside the running event loop. We do this via a
+    dedicated thread with its own event loop — safe, portable, no deprecation.
+    """
+    import concurrent.futures
+    def _run():
+        return asyncio.run(call_macro(name, args, user_id))
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            # In async context: run in thread pool to avoid nested loop
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                future = pool.submit(asyncio.run, call_macro(name, args, user_id))
-                return future.result(timeout=MACRO_TIMEOUT + 1)
-        else:
-            return loop.run_until_complete(call_macro(name, args, user_id))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(_run)
+            return future.result(timeout=MACRO_TIMEOUT + 2)
+    except concurrent.futures.TimeoutError:
+        logger.error(f"[macro] Sync wrapper timed out for '{name}'")
+        return f"⏱️ Tool `{name}` timed out."
     except Exception as e:
-        logger.error(f"[macro] Sync wrapper error: {e}")
+        logger.error(f"[macro] Sync wrapper error for '{name}': {e}")
         return f"⚠️ Error: {e}"
 
 

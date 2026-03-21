@@ -19,6 +19,13 @@
 ! sub piblikasyon = publications
 ! sub ekspòte  = export
 ! sub pratike  = practice
+! sub rekòmande = recommend
+! sub rapò     = report
+! sub nan      = in
+! sub fè       = do
+! sub kòmanse  = start
+! sub kreye    = create
+! sub evalye   = evaluate
 
 // ── Global arrays ────────────────────────────────────────────────────
 // Arrays match single words OR single entries from a list.

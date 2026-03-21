@@ -3,9 +3,12 @@
 from contextlib import asynccontextmanager
 from typing import Optional
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from loguru import logger
+
+load_dotenv()  # Load .env if present (no-op in production where systemd sets env)
 
 from . import engine
 from . import siyuan_sync

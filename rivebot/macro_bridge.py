@@ -119,9 +119,45 @@ def call_macro_sync(name: str, args: str, user_id: str = "user") -> str:
         return f"⚠️ Error: {e}"
 
 
+# ── Stage transitions ─────────────────────────────────────────────────────────
+# Maps the tool name that *completes* a stage → the topic the user moves into.
+# Applied atomically after a successful macro call via MacroBridgeHandler.call().
+
+STAGE_TRANSITIONS: dict[str, str] = {
+    # Completing Stage 1 (talk imported or selected)
+    "import_talk":        "stage_1",
+    "select_active_talk": "stage_1",
+    # Completing Stage 2 (revision created)
+    "create_revision":    "stage_2",
+    # Completing Stage 3 (section development started)
+    "develop_section":    "stage_3",
+    # Completing Stage 4 (evaluation run)
+    "evaluate_talk":      "stage_4",
+    # Completing Stage 5 (rehearsal started)
+    "rehearsal_cue":      "stage_5",
+    # Completing Stage 6 (export)
+    "export_talk_summary":"stage_6",
+}
+
+
 class MacroBridgeHandler:
     def load(self, rs, code):
         pass
 
     def call(self, rs, name, user, args):
-        return call_macro_sync(name, " ".join(args), user)
+        result = call_macro_sync(name, " ".join(args), user)
+
+        # Advance the user's workflow topic if this macro completed a stage.
+        # Only advance — never go backwards — so we check current topic index.
+        if name in STAGE_TRANSITIONS and not result.startswith("⚠️") and not result.startswith("⏱️"):
+            next_topic = STAGE_TRANSITIONS[name]
+            current = rs.get_uservar(user, "topic") or "random"
+            # Topic order for guard
+            _ORDER = ["random", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "stage_6"]
+            curr_idx = _ORDER.index(current) if current in _ORDER else 0
+            next_idx = _ORDER.index(next_topic) if next_topic in _ORDER else 0
+            if next_idx > curr_idx:
+                rs.set_uservar(user, "topic", next_topic)
+                logger.info(f"[stage] {user}: {current} → {next_topic}")
+
+        return result

@@ -1,0 +1,169 @@
+! version = 2.0
+
+// ════════════════════════════════════════════════════════════════════
+//  TalkPrep Brain — persona: talkprep
+//
+//  Design:
+//    - Simple informational intents return STATIC text (Option B — no HTTP)
+//    - Operations that need the database use <call>tool</call> macros
+//    - Substitutions in global.rive translate Haitian Creole BEFORE matching
+//    - All stages inherit from 'random' which has the base + AI fallback
+//
+//  Substitution reference (from global.rive):
+//    montre → show | mwen → my | ki → what | anmwey/ede → help
+//    piblikasyon → publications | pratike → practice | ekspòte → export
+// ════════════════════════════════════════════════════════════════════
+
+// ── topic random (base — always available) ───────────────────────────
+> topic random
+
+  // ── Help (static text — no gateway needed) ──
+
+  + help
+  - 📚 *TalkPrep commands available:*\n\n• *show my talks* — list your talks\n• *status* — see your progress\n• *show publications* — browse source material\n• *import talk [topic name]* — start a new talk\n• *develop section [name]* — write a section (AI)\n• *evaluate talk* — score your talk (AI)\n• *rehearsal* — coaching tips (AI)\n• *export* — generate final manuscript\n• *cost* — view token usage
+
+  + what can you do
+  @ help
+
+  // ── Status / show talks (static prompt — gateway fills details) ──
+  // NOTE: substitution turns "montre talk mwen" → "show talk my"
+  // These triggers cover the most common phrasings.
+
+  + status
+  - <call>talkmaster_status</call>
+
+  + show [my] talks
+  - <call>talkmaster_status</call>
+
+  + show [my] talk
+  - <call>talkmaster_status</call>
+
+  + show talk my
+  - <call>talkmaster_status</call>
+
+  + list [my] talks
+  - <call>talkmaster_status</call>
+
+  + my talks
+  - <call>talkmaster_status</call>
+
+  + what [are] my talks
+  - <call>talkmaster_status</call>
+
+  // ── Publications (static — no DB needed) ──
+
+  + show publications
+  - <call>list_publications</call>
+
+  + list publications
+  - <call>list_publications</call>
+
+  + what [are the] (books|publications|pubs)
+  - <call>list_publications</call>
+
+  // ── Topics for a publication ──
+
+  + list topics *
+  - <call>list_topics <star></call>
+
+  + topics [in] *
+  - <call>list_topics <star></call>
+
+  // ── Cost report ──
+
+  + (cost|usage|tokens)
+  - <call>cost_report</call>
+
+  + how much [have i spent]
+  - <call>cost_report</call>
+
+  // ── AI fallback — explicit delegation to LangGraph ──
+
+  + *
+  - {{ai_fallback}}
+
+< topic
+
+// ── Stage 1: Import ───────────────────────────────────────────────────
+> topic stage_1 inherits random
+
+  + import talk *
+  - <call>import_talk <star></call>
+
+  + import *
+  - <call>import_talk <star></call>
+
+  + start [a] [new] talk [about] *
+  - <call>import_talk <star></call>
+
+  + select talk *
+  - <call>select_active_talk <star></call>
+
+  + (use|switch to) talk *
+  - <call>select_active_talk <star></call>
+
+< topic
+
+// ── Stage 2: Revision ─────────────────────────────────────────────────
+> topic stage_2 inherits stage_1
+
+  + (create|new) revision *
+  - <call>create_revision <star></call>
+
+  + revision *
+  - <call>create_revision <star></call>
+
+  + revise *
+  - <call>create_revision <star></call>
+
+< topic
+
+// ── Stage 3: Development ──────────────────────────────────────────────
+> topic stage_3 inherits stage_2
+
+  + develop [section] *
+  - <call>develop_section <star></call>
+
+  + write [section] *
+  - <call>develop_section <star></call>
+
+  + generate [section] *
+  - <call>develop_section <star></call>
+
+< topic
+
+// ── Stage 4: Evaluation ───────────────────────────────────────────────
+> topic stage_4 inherits stage_3
+
+  + evaluate [talk]
+  - <call>evaluate_talk</call>
+
+  + evaluate [my] talk
+  - <call>evaluate_talk</call>
+
+  + (scores|score|results) [for] *
+  - <call>get_evaluation_scores <star></call>
+
+  + (scores|score|results)
+  - <call>get_evaluation_scores</call>
+
+< topic
+
+// ── Stage 5: Rehearsal ────────────────────────────────────────────────
+> topic stage_5 inherits stage_4
+
+  + (rehearsal|rehearse|practice) [*]
+  - <call>rehearsal_cue <star></call>
+
+  + (cues|coaching|tips) [for] *
+  - <call>rehearsal_cue <star></call>
+
+< topic
+
+// ── Stage 6: Export ───────────────────────────────────────────────────
+> topic stage_6 inherits stage_5
+
+  + (export|print|final|manuscript) [*]
+  - <call>export_talk_summary <star></call>
+
+< topic

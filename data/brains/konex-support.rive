@@ -1,0 +1,27 @@
+! version = 2.0
+
+// ════════════════════════════════════════════════════════════════════
+//  Konex Support Brain — persona: konex-support
+// ════════════════════════════════════════════════════════════════════
+
+> topic random
+
+  // Help (static text)
+  + help
+  - 👋 *Konex Support — You can ask me:*\n\n• *my profile* — view your account info\n• *reset* — clear conversation history\n• *help* — this menu\n\nOr just ask your question and I'll assist you!
+
+  + what can you do
+  @ help
+
+  // User profile (needs DB)
+  + (my|mon) (profile|profil|info|account|kont)
+  - <call>fetch_dossier</call>
+
+  + show [my] profile
+  - <call>fetch_dossier</call>
+
+  // AI fallback
+  + *
+  - {{ai_fallback}}
+
+< topic

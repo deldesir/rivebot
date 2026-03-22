@@ -115,3 +115,25 @@ async def reload_brains() -> dict:
 @app.get("/health")
 async def health_check() -> dict:
     return {"status": "ok", "engines": list(engine._engines.keys())}
+
+
+@app.get("/list-brains")
+async def list_brains() -> dict:
+    """List all loaded brain engines with their topic counts.
+
+    Useful for admin/debug to verify which personas are active
+    and how many triggers each brain contains.
+    """
+    brains = {}
+    for name, rs in engine._engines.items():
+        topics = list(getattr(rs, "_topics", {}).keys())
+        trigger_count = sum(
+            len(getattr(rs, "_topics", {}).get(t, {}))
+            for t in topics
+        ) if hasattr(rs, "_topics") else 0
+        brains[name] = {
+            "topics": topics,
+            "topic_count": len(topics),
+            "trigger_count": trigger_count,
+        }
+    return {"brains": brains, "count": len(brains)}

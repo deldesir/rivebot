@@ -47,8 +47,14 @@ ALLOWED_MACROS: dict[str, str] = {
     "rehearsal_cue":         "/v1/tools/rehearsal_cue",
     # TalkPrep — Stage 6
     "export_talk_summary":   "/v1/tools/export_talk_summary",
+    # Study Tools
+    "generate_anki_deck":    "/v1/tools/generate_anki_deck",
+    "push_to_siyuan":        "/v1/tools/push_to_siyuan",
     # Konex
     "fetch_dossier":         "/v1/tools/fetch_dossier",
+    "start_flow":            "/v1/tools/start_flow",
+    # Forms
+    "submit_form":           "/v1/tools/submit_form",
 }
 
 

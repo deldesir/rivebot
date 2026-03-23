@@ -264,7 +264,7 @@ def start_watchers() -> Observer:
 
     # Mode A: always watch .rive files
     BRAINS_DIR.mkdir(parents=True, exist_ok=True)
-    observer.schedule(RiveFileHandler(), str(BRAINS_DIR), recursive=False)
+    observer.schedule(RiveFileHandler(), str(BRAINS_DIR), recursive=True)
     logger.info(f"[sync-A] Watching .rive files in {BRAINS_DIR}")
 
     # Mode B: optionally watch SiYuan data dir (local filesystem)

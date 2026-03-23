@@ -1,26 +1,57 @@
 ! version = 2.0
 
-// ════════════════════════════════════════════════════════════════════
-//  Konex Support Brain — persona: konex-support
-// ════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+//  Konex Support — persona: konex-support
+// ═══════════════════════════════════════════════════════════════
 
-> topic random
+! local concat = newline
 
-  // Help (static text)
-  + help
-  - 👋 *Konex Support — You can ask me:*\n\n• *my profile* — view your account info\n• *reset* — clear conversation history\n• *help* — this menu\n\nOr just ask your question and I'll assist you!
+// ── Persona Identity ─────────────────────────────────────────
+! var name    = Konex Support
+! var persona = support
 
-  + what can you do
-  @ help
+// ── Main Topic (includes shared conversation) ────────────────
+> topic random includes conversation
 
-  // User profile (needs DB)
+  // ── Help ───────────────────────────────────────────────────
+  + (help|ede|èd)
+  * <get lang> == en => 👋 *Konex Support — I can help with:*
+  ^ \n
+  ^ \n• *my profile* — your account info
+  ^ \n• *reset* — clear conversation history
+  ^ \n• *help* — this menu
+  ^ \n
+  ^ \nOr just ask me your question!
+  - 👋 *Konex Support — Mwen ka ede w ak:*
+  ^ \n
+  ^ \n• *pwofil mwen* / *my profile* — enfòmasyon kont ou
+  ^ \n• *reset* — efase istwa konvèsasyon
+  ^ \n• *help* / *ede* — meni sa a
+  ^ \n
+  ^ \nOswa jis poze m kesyon w!
+
+  // ── Account / Profile ──────────────────────────────────────
   + (my|mon) (profile|profil|info|account|kont)
-  - <call>fetch_dossier</call>
+  @ fetch profile
 
   + show [my] profile
+  @ fetch profile
+
+  + (pwofil|kont) mwen
+  @ fetch profile
+
+  + (show|montre|wè|gade) [pwofil|kont] mwen
+  @ fetch profile
+
+  + fetch profile
   - <call>fetch_dossier</call>
 
-  // AI fallback
+  // ── Support Ticket Form ────────────────────────────────────
+  + (ouvri tiket|open ticket|tiket|ticket|pwoblèm|report issue)
+  * <get lang> == en => {topic=form_support}Please describe your issue briefly:
+  - {topic=form_support}Dekri pwoblèm ou an an kèk mo:
+
+  // ── AI Fallback ────────────────────────────────────────────
   + *
   - {{ai_fallback}}
 

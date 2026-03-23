@@ -1,0 +1,98 @@
+// ═══════════════════════════════════════════════════════════════
+//  Multi-Turn Forms
+//
+//  Self-contained topic chains for collecting structured data
+//  without AI. Triggered from persona-specific brain files.
+//
+//  Available forms:
+//    • form_support  — open a support ticket (konex-support)
+//    • form_upgrade  — request a plan upgrade (konex-sales)
+//
+//  The submit_form macro calls the AI Gateway's /forms endpoint
+//  to persist and route the submission.
+// ═══════════════════════════════════════════════════════════════
+
+! local concat = newline
+
+// ══════════════════════════════════════════════
+//  Support Ticket Form
+// ══════════════════════════════════════════════
+
+> topic form_support
+
+  // Step 1: Ask for description
+  + start
+  * <get lang> == en => Please describe your issue briefly:
+  - Dekri pwoblèm ou an an kèk mo:
+
+  + _
+  - <set form_issue=<star>>{topic=form_support_confirm}
+  ^ \n📝 *Rezime:* <get form_issue>
+  ^ \nKonfime? Tape *wi* pou soumèt oswa *non* pou rekòmanse.
+
+< topic
+
+
+> topic form_support_confirm
+
+  + (wi|yes|oui|ok|dakò)
+  - <call>submit_form support <get form_issue></call>
+  ^ {topic=random}
+
+  + (non|no|nan)
+  * <get lang> == en => <set form_issue=>{topic=form_support}Ok, let's start over. Describe your issue:
+  - <set form_issue=>{topic=form_support}Ok, rekòmanse. Dekri pwoblèm ou an:
+
+  + *
+  * <get lang> == en => Please type *wi* to confirm or *non* to restart.
+  - Tape *wi* pou konfime oswa *non* pou rekòmanse.
+
+< topic
+
+
+// ══════════════════════════════════════════════
+//  Plan Upgrade Form
+// ══════════════════════════════════════════════
+
+> topic form_upgrade
+
+  // Step 1: Which plan?
+  + start
+  - Kilès plan w vle pase? *(Basic · Standard · Premium)*
+
+  + (basic|standard|premium)
+  - <set form_plan=<star>>{topic=form_upgrade_contact}
+  ^ \n📱 Plan chwazi: *<get form_plan>*
+  ^ \nKilès nimewo w ap itilize a?
+
+< topic
+
+
+> topic form_upgrade_contact
+
+  // Step 2: Phone number for the upgrade
+  + _
+  - <set form_phone=<star>>{topic=form_upgrade_confirm}
+  ^ \n✅ *Rezime:*
+  ^ \n• Plan: *<get form_plan>*
+  ^ \n• Nimewo: *<get form_phone>*
+  ^ \nKonfime? Tape *wi* oswa *non*.
+
+< topic
+
+
+> topic form_upgrade_confirm
+
+  + (wi|yes|oui|ok|dakò)
+  - <call>submit_form upgrade <get form_plan> <get form_phone></call>
+  ^ {topic=random}
+
+  + (non|no|nan)
+  * <get lang> == en => <set form_plan=><set form_phone=>{topic=form_upgrade}Ok, let's restart. Which plan?
+  - <set form_plan=><set form_phone=>{topic=form_upgrade}Ok, rekòmanse. Kilès plan?
+
+  + *
+  * <get lang> == en => Type *wi* to confirm or *non* to restart.
+  - Tape *wi* pou konfime oswa *non* pou rekòmanse.
+
+< topic

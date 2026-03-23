@@ -1,169 +1,296 @@
 ! version = 2.0
 
-// ════════════════════════════════════════════════════════════════════
-//  TalkPrep Brain — persona: talkprep
+// ═══════════════════════════════════════════════════════════════
+//  TalkPrep — persona: talkprep
 //
-//  Design:
-//    - Simple informational intents return STATIC text (Option B — no HTTP)
-//    - Operations that need the database use <call>tool</call> macros
-//    - Substitutions in global.rive translate Haitian Creole BEFORE matching
-//    - All stages inherit from 'random' which has the base + AI fallback
-//
-//  Substitution reference (from global.rive):
-//    montre → show | mwen → my | ki → what | anmwey/ede → help
-//    piblikasyon → publications | pratike → practice | ekspòte → export
-// ════════════════════════════════════════════════════════════════════
+//  Speech/talk preparation assistant. Guides users through a
+//  staged workflow: Import → Revision → Development →
+//  Evaluation → Rehearsal → Export.
+// ═══════════════════════════════════════════════════════════════
 
-// ── topic random (base — always available) ───────────────────────────
-> topic random
+! local concat = newline
 
-  // ── Help (static text — no gateway needed) ──
+// ── Persona Identity ─────────────────────────────────────────
+! var name    = TalkPrep
+! var persona = talkprep
 
-  + help
-  - 📚 *TalkPrep commands available:*\n\n• *show my talks* — list your talks\n• *status* — see your progress\n• *show publications* — browse source material\n• *import talk [topic name]* — start a new talk\n• *develop section [name]* — write a section (AI)\n• *evaluate talk* — score your talk (AI)\n• *rehearsal* — coaching tips (AI)\n• *export* — generate final manuscript\n• *cost* — view token usage
+// ═════════════════════════════════════════════════════════════
+//  BASE TOPIC — always available
+// ═════════════════════════════════════════════════════════════
+> topic random includes conversation
 
-  + what can you do
-  @ help
+  // ── Help ───────────────────────────────────────────────────
+  + (help|ede|èd)
+  * <get lang> == en => 📚 *TalkPrep — How to use me:*
+  ^ \n
+  ^ \n• *show my talks* — list your talks
+  ^ \n• *status* — see where you are
+  ^ \n• *show publications* — browse source documents
+  ^ \n• *import talk [name]* — start a new talk
+  ^ \n• *develop section [name]* — write a section (AI)
+  ^ \n• *evaluate talk* — score your talk (AI)
+  ^ \n• *rehearsal* — coaching tips (AI)
+  ^ \n• *export* — generate final manuscript
+  ^ \n• *generate anki deck* — memory flashcards
+  ^ \n• *push to siyuan* — export to SiYuan
+  ^ \n• *cost* — see token usage
+  - 📚 *TalkPrep — Koman w ka itilize m:*
+  ^ \n
+  ^ \n• *montre diskou mwen* / *show my talks* — lis diskou w yo
+  ^ \n• *estati* / *status* — wè kote w ye
+  ^ \n• *piblikasyon* / *show publications* — navigate dokiman sou
+  ^ \n• *enpòte diskou [non]* / *import talk [name]* — komanso yon diskou
+  ^ \n• *devlope seksyon [non]* / *develop section [name]* — ekri yon seksyon (AI)
+  ^ \n• *evalye diskou* / *evaluate talk* — nwòt diskou w (AI)
+  ^ \n• *repete* / *rehearsal* — konsèy pou pratik (AI)
+  ^ \n• *ekspòte* / *export* — jenere maniskri final
+  ^ \n• *kreye kat anki [pub]* / *generate anki deck* — kat mèmwa
+  ^ \n• *voye nan siyuan [pub]* / *push to siyuan* — ekspòte nan SiYuan
+  ^ \n• *depans* / *cost* — wè konsomasyon token
 
-  // ── Status / show talks (static prompt — gateway fills details) ──
-  // NOTE: substitution turns "montre talk mwen" → "show talk my"
-  // These triggers cover the most common phrasings.
+  // ── Status / My Talks ──────────────────────────────────────
+  + (status|estati)
+  @ show talks
 
-  + status
-  - <call>talkmaster_status</call>
-
-  + show [my] talks
-  - <call>talkmaster_status</call>
-
-  + show [my] talk
-  - <call>talkmaster_status</call>
+  + (show|montre|wè|gade) [my] (talks|talk)
+  @ show talks
 
   + show talk my
-  - <call>talkmaster_status</call>
+  @ show talks
 
-  + list [my] talks
-  - <call>talkmaster_status</call>
+  + (list|lis) [my] talks
+  @ show talks
 
-  + my talks
-  - <call>talkmaster_status</call>
+  + (my|diskou) (talks|mwen)
+  @ show talks
+
+  + diskou mwen yo
+  @ show talks
 
   + what [are] my talks
+  @ show talks
+
+  + what diskou mwen [yo]
+  @ show talks
+
+  + what diskou mwen
+  @ show talks
+
+  + show diskou mwen [yo]
+  @ show talks
+
+  + show diskou mwen
+  @ show talks
+
+  + show talks
   - <call>talkmaster_status</call>
 
-  // ── Publications (static — no DB needed) ──
+  // ── Publications ───────────────────────────────────────────
+  + (show|montre|wè|gade) (publications|piblikasyon)
+  @ show pubs
 
-  + show publications
+  + (list|lis) (publications|piblikasyon)
+  @ show pubs
+
+  + what [are the] (books|publications|pubs|piblikasyon|liv)
+  @ show pubs
+
+  + what (piblikasyon|liv|dokiman) [what genyen]
+  @ show pubs
+
+  + what (piblikasyon|publications|liv|dokiman) what genyen
+  @ show pubs
+
+  + what (piblikasyon|liv|dokiman)
+  @ show pubs
+
+  + show (piblikasyon|liv|dokiman)
+  @ show pubs
+
+  + show pubs
   - <call>list_publications</call>
 
-  + list publications
-  - <call>list_publications</call>
-
-  + what [are the] (books|publications|pubs)
-  - <call>list_publications</call>
-
-  // ── Topics for a publication ──
-
+  // ── Topics for a Publication ───────────────────────────────
   + list topics *
   - <call>list_topics <star></call>
 
-  + topics [in] *
+  + (topics|sijè) [in|nan] *
   - <call>list_topics <star></call>
 
-  // ── Cost report ──
+  + what sijè [in] *
+  - <call>list_topics <star></call>
 
-  + (cost|usage|tokens)
-  - <call>cost_report</call>
+  // ── Cost Report ────────────────────────────────────────────
+  + (cost|usage|tokens|depans|konsomasyon)
+  @ show cost
 
   + how much [have i spent]
+  @ show cost
+
+  + konbyen [mwen] depanse
+  @ show cost
+
+  + konbyen mwen depanse
+  @ show cost
+
+  + what depans [mwen]
+  @ show cost
+
+  + show cost
   - <call>cost_report</call>
 
-  // ── AI fallback — explicit delegation to LangGraph ──
+  // ── Anki Deck Generation ───────────────────────────────────
+  + generate anki deck *
+  @ make anki <star>
 
+  + generate anki *
+  @ make anki <star>
+
+  + anki deck *
+  @ make anki <star>
+
+  + (flashcards|kat memwa|kat anki) *
+  @ make anki <star>
+
+  + (flashcards|kat memwa|kat anki) for *
+  @ make anki <star>
+
+  + anki for *
+  @ make anki <star>
+
+  + create kat anki *
+  @ make anki <star>
+
+  + generate anki deck
+  @ make anki
+
+  + (anki|flashcards|kat memwa|kat anki)
+  @ make anki
+
+  + create kat anki
+  @ make anki
+
+  + make anki *
+  - <call>generate_anki_deck <star></call>
+
+  + make anki
+  - <call>generate_anki_deck</call>
+
+  // ── SiYuan Push ────────────────────────────────────────────
+  + (push|voye) to siyuan *
+  @ push siyuan <star>
+
+  + (export|ekspòte|voye) (to|nan) siyuan *
+  @ push siyuan <star>
+
+  + voye in siyuan *
+  @ push siyuan <star>
+
+  + (push|voye) to siyuan
+  @ push siyuan
+
+  + (export|ekspòte|voye) (to|nan) siyuan
+  @ push siyuan
+
+  + voye in siyuan
+  @ push siyuan
+
+  + push siyuan *
+  - <call>push_to_siyuan <star></call>
+
+  + push siyuan
+  - <call>push_to_siyuan</call>
+
+  // ── AI Fallback ────────────────────────────────────────────
   + *
   - {{ai_fallback}}
 
 < topic
 
-// ── Stage 1: Import ───────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════
+//  STAGE TOPICS — progressive capability unlock
+// ═════════════════════════════════════════════════════════════
+
+// ── Stage 1: Import ──────────────────────────────────────────
 > topic stage_1 inherits random
 
-  + import talk *
+  + (import|enpòte|pote) (talk|diskou) *
   - <call>import_talk <star></call>
 
-  + import *
+  + (import|enpòte|pote) *
   - <call>import_talk <star></call>
 
-  + start [a] [new] talk [about] *
+  + (start|kòmanse) [a] [new|nouvo] (talk|diskou) [about|sou] *
   - <call>import_talk <star></call>
 
-  + select talk *
+  + (select|chwazi) (talk|diskou) *
   - <call>select_active_talk <star></call>
 
-  + (use|switch to) talk *
+  + (use|switch to|itilize) (talk|diskou) *
   - <call>select_active_talk <star></call>
 
 < topic
 
-// ── Stage 2: Revision ─────────────────────────────────────────────────
+// ── Stage 2: Revision ────────────────────────────────────────
 > topic stage_2 inherits stage_1
 
-  + (create|new) revision *
+  + (create|new|kreye|nouvo) (revision|revizyon) *
   - <call>create_revision <star></call>
 
-  + revision *
+  + (revision|revizyon) *
   - <call>create_revision <star></call>
 
-  + revise *
+  + (revise|revize) *
   - <call>create_revision <star></call>
 
 < topic
 
-// ── Stage 3: Development ──────────────────────────────────────────────
+// ── Stage 3: Development ─────────────────────────────────────
 > topic stage_3 inherits stage_2
 
-  + develop [section] *
+  + (develop|devlope) [section|seksyon] *
   - <call>develop_section <star></call>
 
-  + write [section] *
+  + (write|ekri) [section|seksyon] *
   - <call>develop_section <star></call>
 
-  + generate [section] *
+  + (generate|jenere) [section|seksyon] *
   - <call>develop_section <star></call>
 
 < topic
 
-// ── Stage 4: Evaluation ───────────────────────────────────────────────
+// ── Stage 4: Evaluation ──────────────────────────────────────
 > topic stage_4 inherits stage_3
 
-  + evaluate [talk]
+  + (evaluate|evalye) [talk|diskou]
   - <call>evaluate_talk</call>
 
-  + evaluate [my] talk
+  + (evaluate|evalye) [my] (talk|diskou)
   - <call>evaluate_talk</call>
 
-  + (scores|score|results) [for] *
+  + (scores|score|results|rezilta|nòt) [for|pou] *
   - <call>get_evaluation_scores <star></call>
 
-  + (scores|score|results)
+  + (scores|score|results|rezilta|nòt)
   - <call>get_evaluation_scores</call>
 
 < topic
 
-// ── Stage 5: Rehearsal ────────────────────────────────────────────────
+// ── Stage 5: Rehearsal ───────────────────────────────────────
 > topic stage_5 inherits stage_4
 
-  + (rehearsal|rehearse|practice) [*]
+  + (rehearsal|rehearse|practice|repete|pratike|repetisyon) [*]
   - <call>rehearsal_cue <star></call>
 
-  + (cues|coaching|tips) [for] *
+  + (cues|coaching|tips|konsèy) [for|pou] *
   - <call>rehearsal_cue <star></call>
 
 < topic
 
-// ── Stage 6: Export ───────────────────────────────────────────────────
+// ── Stage 6: Export ──────────────────────────────────────────
 > topic stage_6 inherits stage_5
 
-  + (export|print|final|manuscript) [*]
+  + (export|print|final|manuscript|ekspòte|enprime|maniskri) [*]
   - <call>export_talk_summary <star></call>
 
 < topic

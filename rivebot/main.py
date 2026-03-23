@@ -46,6 +46,13 @@ class SetTopicRequest(BaseModel):
     topic: str
 
 
+class SetVarRequest(BaseModel):
+    persona: str   # "*" = all personas
+    user: str      # "*" = all users
+    var: str
+    value: str
+
+
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
 @app.post("/match")
@@ -53,15 +60,53 @@ async def match_intent(req: MatchRequest) -> dict:
     """
     Attempt to match a message against a persona's RiveScript brain.
 
-    Returns {"matched": true, "response": "..."} if a trigger fires,
-    or {"matched": false, "response": null} to fall through to LangGraph.
+    Returns:
+        matched  (bool):     whether a trigger fired
+        response (str|null): the reply text, or null for AI fallback
+        context  (dict):     session context for AI continuity:
+            - lang:    detected user language (ht/en)
+            - topic:   current RiveScript topic
+            - history: last 3 input/reply pairs
     """
     try:
-        reply = engine.match(req.message, req.persona, req.user)
-        return {"matched": reply is not None, "response": reply}
+        result = engine.match(req.message, req.persona, req.user)
+        # Empty string response = noai silence (3rd+ fallback).
+        # Return matched=True with empty response so gateway sends nothing.
+        if result.get("response") == "":
+            result["response"] = None
+            result["matched"] = False  # Signal: don't send anything
+            result["silent"] = True    # Explicit silence flag
+        return result
     except Exception:
         logger.exception(f"Error in /match for persona={req.persona}")
-        return {"matched": False, "response": None}
+        return {"matched": False, "response": None, "context": {}}
+
+
+@app.post("/set-var")
+async def set_var(req: SetVarRequest) -> dict:
+    """
+    Set a RiveScript user variable.
+
+    Used by RapidPro and the AI Gateway to toggle noai mode,
+    set language preferences, or any other user state.
+
+    Supports wildcards:
+        persona="*" → set across all loaded personas
+        user="*"    → set for all known users in the persona
+
+    Examples:
+        POST /set-var {"persona":"*","user":"*","var":"noai","value":"true"}
+        POST /set-var {"persona":"talkprep","user":"+509123","var":"lang","value":"en"}
+    """
+    if req.persona == "*":
+        results = engine.set_uservar_all(req.var, req.value)
+        return {"ok": True, "scope": "global", "results": results}
+    else:
+        ok = engine.set_uservar(req.persona, req.user, req.var, req.value)
+        if not ok:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail=f"No brain for persona '{req.persona}'")
+        return {"ok": True, "persona": req.persona, "user": req.user, "var": req.var, "value": req.value}
 
 
 @app.post("/set-topic")
@@ -110,6 +155,32 @@ async def reload_brains() -> dict:
     """Hot-reload all brain files from disk (called by SiYuan sync watcher)."""
     results = engine.reload_all()
     return {"status": "reloaded", "results": results}
+
+
+@app.get("/noai-status")
+async def noai_status() -> dict:
+    """Return current noai state: global flag + per-user list."""
+    return engine.get_noai_status()
+
+
+@app.get("/analytics")
+async def analytics() -> dict:
+    """Return trigger hit counts and AI fallback ratio per persona.
+
+    Useful for identifying which user messages fall through to AI
+    and should become new deterministic RiveScript triggers.
+    """
+    return engine.get_analytics()
+
+
+@app.get("/stale-sessions")
+async def stale_sessions(max_age_hours: float = 24.0) -> dict:
+    """Return users stuck in a non-random topic beyond max_age_hours.
+
+    Designed to be polled by RapidPro to trigger follow-up messages.
+    Example: GET /stale-sessions?max_age_hours=12
+    """
+    return engine.get_stale_sessions(max_age_hours)
 
 
 @app.get("/health")

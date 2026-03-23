@@ -1,0 +1,28 @@
+! version = 2.0
+
+// ═══════════════════════════════════════════════════════════════
+//  RiveBot — Global Configuration
+//
+//  Loaded first for ALL personas. Contains:
+//    • Bot variables (overridable by persona files)
+//    • Shared arrays for trigger matching
+// ═══════════════════════════════════════════════════════════════
+
+// ── Bot Identity (defaults — personas override these) ────────
+! var name    = RiveBot
+! var company = IIAB
+! var lang    = ht
+
+// ── Shared Arrays ────────────────────────────────────────────
+! array greetings   = bonjou bonswa hello hi hey salut alo
+! array thanks      = mesi merci thanks thank
+! array bye         = orevwa bye goodbye kenbe babay adye
+! array yes         = yes yeah yep oui wi ok okay
+! array no          = no nah nope non
+! array show        = show montre wè gade afiche
+! array list        = list lis montre
+! array help_words  = help ede èd aide asistans
+
+// ── Sentiment Arrays ──────────────────────────────────────────
+! array frustration = fache anmède fristré énervé frustrated angry mad upset annoy irritate pa ka sipòte
+! array positive    = super bon byen excellent great perfect parfè merveilleux amazing wonderful bravo

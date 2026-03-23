@@ -1,46 +1,89 @@
 ! version = 2.0
 
-// ════════════════════════════════════════════════════════════════════
-//  Konex Sales Brain — persona: konex-sales
-//
-//  Design:
-//    - Casual, emoji-heavy, Haitian Creole focused
-//    - Upselling, plan comparison, flow triggers
-//    - Substitutions in global.rive translate Creole BEFORE matching
-//    - AI fallback handles all free-form sales queries
-// ════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+//  Konex Sales — persona: konex-sales
+// ═══════════════════════════════════════════════════════════════
 
-> topic random
+! local concat = newline
 
-  // ── Help ──
-  + help
-  - 👋 *Konex Sales — Mwen ka ede w ak:*\n\n• *plans* — wè tout plan yo\n• *upgrade* — chanje plan w\n• *promo* — pwomosyon ki disponib\n• *my account* — enfòmasyon kont ou\n\nOswa mande m nenpòt kesyon sou sèvis nou!
+// ── Persona Identity ─────────────────────────────────────────
+! var name    = Konex Sales
+! var persona = sales
 
-  + what can you do
-  @ help
+// ── Main Topic (includes shared conversation) ────────────────
+> topic random includes conversation
 
-  // ── Plan info (static text) ──
+  // ── Help ───────────────────────────────────────────────────
+  + (help|ede|èd)
+  * <get lang> == en => 👋 *Konex Sales — I can help with:*
+  ^ \n
+  ^ \n• *plans* — view all plans
+  ^ \n• *upgrade* — change your plan
+  ^ \n• *promo* — available promotions
+  ^ \n• *my account* — your account info
+  ^ \n
+  ^ \nOr ask me anything about our services!
+  - 👋 *Konex Sales — Mwen ka ede w ak:*
+  ^ \n
+  ^ \n• *plans* / *forfè* — wè tout plan yo
+  ^ \n• *upgrade* / *monte* — chanje plan w
+  ^ \n• *promo* / *pwomosyon* — pwomosyon ki disponib
+  ^ \n• *kont mwen* / *my account* — enfòmasyon kont ou
+  ^ \n
+  ^ \nOswa mande m nenpòt kesyon sou sèvis nou!
+
+  // ── Plan Information ───────────────────────────────────────
   + (plans|plan|forfait|forfè)
-  - 📱 *Plan Konex yo:*\n\n• *Basic* — 250 HTG/mwa (1GB, 50 min)\n• *Standard* — 500 HTG/mwa (5GB, unlimited min)\n• *Premium* — 1000 HTG/mwa (unlimited data + min)\n\nTape *upgrade* pou chanje plan w!
+  - 📱 *Plan Konex yo:*
+  ^ \n
+  ^ \n• *Basic* — 250 HTG/mwa (1GB, 50 min)
+  ^ \n• *Standard* — 500 HTG/mwa (5GB, unlimited min)
+  ^ \n• *Premium* — 1000 HTG/mwa (unlimited data + min)
+  ^ \n
+  ^ \nTape *upgrade* pou chanje plan w!
 
   + (price|pri|konbyen|combien) [*]
   @ plans
 
-  // ── Upgrade / upsell triggers ──
+  + what pri [*]
+  @ plans
+
+  + what pri
+  @ plans
+
+  + konbyen plan yo [*]
+  @ plans
+
+  // ── Upgrade / Promotions ───────────────────────────────────
   + (upgrade|monte|chanje plan) [*]
-  - 🚀 Kite m ede w monte plan w! M ap voye w yon fòm pou chwazi.\n<call>start_flow upgrade_flow</call>
+  - 🚀 Kite m ede w monte plan w! M ap voye w yon fòm pou chwazi.
+  ^ \n<call>start_flow upgrade_flow</call>
 
   + (promo|pwomosyon|promotion|deal) [*]
-  - 🎉 Tcheке pwomosyon ki disponib kounye a:\n<call>start_flow promo_check</call>
+  - 🎉 Tcheке pwomosyon ki disponib kounye a:
+  ^ \n<call>start_flow promo_check</call>
 
-  // ── Account info ──
+  // ── Account / Profile ──────────────────────────────────────
   + (my|mon) (account|kont|profil|profile)
-  - <call>fetch_dossier</call>
+  @ fetch account
 
   + show [my] (account|profile)
+  @ fetch account
+
+  + (kont|pwofil) mwen
+  @ fetch account
+
+  + (show|montre|wè|gade) [kont|pwofil] mwen
+  @ fetch account
+
+  + fetch account
   - <call>fetch_dossier</call>
 
-  // ── AI fallback ──
+  // ── Upgrade Form ──────────────────────────────────────────
+  + (upgrade|amelyore|chanje plan|change plan|pase pi wo)
+  - {topic=form_upgrade}Kilès plan w vle pase? *(Basic · Standard · Premium)*
+
+  // ── AI Fallback ────────────────────────────────────────────
   + *
   - {{ai_fallback}}
 

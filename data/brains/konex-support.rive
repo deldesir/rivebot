@@ -15,20 +15,16 @@
 
   // ── Help ───────────────────────────────────────────────────
   + (help|ede|èd)
-  * <get lang> == en => 👋 *Konex Support — I can help with:*
-  ^ \n
+  * <get lang> == en => Here's what I can do:
   ^ \n• *my profile* — your account info
-  ^ \n• *reset* — clear conversation history
-  ^ \n• *help* — this menu
-  ^ \n
-  ^ \nOr just ask me your question!
-  - 👋 *Konex Support — Mwen ka ede w ak:*
-  ^ \n
-  ^ \n• *pwofil mwen* / *my profile* — enfòmasyon kont ou
-  ^ \n• *reset* — efase istwa konvèsasyon
-  ^ \n• *help* / *ede* — meni sa a
-  ^ \n
-  ^ \nOswa jis poze m kesyon w!
+  ^ \n• *open ticket* — report an issue
+  ^ \n• *reset* — start fresh
+  ^ \nOr just ask me anything 👇
+  - Men sa m ka fè pou ou:
+  ^ \n• *pwofil mwen* — enfòmasyon kont ou
+  ^ \n• *ouvri tiket* — rapòte yon pwoblèm
+  ^ \n• *reset* — rekòmanse
+  ^ \nOswa jis poze m kesyon w 👇
 
   // ── Account / Profile ──────────────────────────────────────
   + (my|mon) (profile|profil|info|account|kont)
@@ -48,8 +44,18 @@
 
   // ── Support Ticket Form ────────────────────────────────────
   + (ouvri tiket|open ticket|tiket|ticket|pwoblèm|report issue)
-  * <get lang> == en => {topic=form_support}Please describe your issue briefly:
-  - {topic=form_support}Dekri pwoblèm ou an an kèk mo:
+  * <get lang> == en => {topic=form_support}What's the issue? Describe it briefly:
+  - {topic=form_support}Kisa pwoblèm nan ye? Dekri l an kèk mo:
+
+  // ── Acknowledgments — stay silent (no reply needed) ─────────
+  + (ok|okay|ok sa|oke|alright|aight|gotcha|bet|cool|nice|lol|haha|mdrrr)
+  - {{silent}}
+
+  + (wi|yes|yeah|yep)
+  - {{silent}}
+
+  + (no|nah|nope)
+  - {{silent}}
 
   // ── AI Fallback ────────────────────────────────────────────
   + *

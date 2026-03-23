@@ -1,16 +1,10 @@
 // ═══════════════════════════════════════════════════════════════
 //  Shared Conversation — included by all persona topics
 //
-//  Features:
-//    • <bot name>     — persona-adaptive text
-//    • <set>/<get>    — user language, name, mood, onboarded
-//    • <formal>       — capitalize collected names
-//    • @ redirect     — DRY trigger variants
-//    • * conditions   — language-branched + onboarding gate
-//    • ^ continue     — readable multi-line responses
-//    • {weight=N}     — preferred greeting variants appear more often
-//    • {random}       — inline emoji variety
-//    • (@array)       — sentiment keyword matching
+//  Design philosophy:
+//    • Talk like a real person, not a customer-service bot
+//    • Not every message needs a reply — silence is ok
+//    • Keep it short and natural
 // ═══════════════════════════════════════════════════════════════
 
 ! local concat = newline
@@ -18,78 +12,68 @@
 > topic conversation
 
   // ── Greetings (with onboarding gate) ───────────────────────
-  // First-time users (onboarded undefined) → trigger onboarding.
-  // Returning users with a known name get a personalised reply.
-
   + (bonjou|bonswa|salut|alo)
-  * <get onboarded> == undefined => <set lang=ht>{topic=onboarding}Bonjou! Anvan nou kòmanse...
-  * <get welcomed> == true => <set lang=ht>👋 Bienveni tounen, <get name>! Kisa w bezwen jodi a?{weight=3}
-  - <set lang=ht>👋 Bonjou! Byenveni nan <bot name>. Kisa w bezwen jodi a?{weight=3}
-  - <set lang=ht>🌟 Salut! Byenveni nan <bot name>. Tape *help* pou wè koman m ka ede w.{weight=2}
-  - <set lang=ht>{random}👋|🌟|✨{/random} Bonjou! Mwen la pou ede w. Kisa w bezwen?
+  * <get onboarded> == undefined => <set lang=ht>{topic=onboarding}Yo! Kijan yo rele w?
+  * <get welcomed> == true => <set lang=ht>👋 <get name>! Kisa w bezwen?{weight=3}
+  - <set lang=ht>👋 Bonjou! Kisa w bezwen?{weight=3}
+  - <set lang=ht>Salut! Kijan m ka ede w?{weight=2}
+  - <set lang=ht>Alo! 👋
 
   + (hello|hi|hey)
-  * <get onboarded> == undefined => <set lang=en>{topic=onboarding}Hello! Before we start...
-  * <get welcomed> == true => <set lang=en>👋 Welcome back, <get name>! What can I help you with?{weight=3}
-  * <get lang> == ht => <set lang=ht>👋 Bonjou! Byenveni nan <bot name>. Kisa w bezwen jodi a?
-  - <set lang=en>👋 Hello! Welcome to <bot name>. What can I help you with today?{weight=3}
-  - <set lang=en>🌟 Hi there! Welcome to <bot name>. Type *help* to see what I can do.{weight=2}
-  - <set lang=en>{random}👋|🌟|✨{/random} Hey! I'm here to help. What do you need?
+  * <get onboarded> == undefined => <set lang=en>{topic=onboarding}Hey! What's your name?
+  * <get welcomed> == true => <set lang=en>👋 Hey <get name>! What's up?{weight=3}
+  * <get lang> == ht => <set lang=ht>👋 Bonjou! Kisa w bezwen?
+  - <set lang=en>Hey! 👋 What can I do for you?{weight=3}
+  - <set lang=en>Hi! How can I help?{weight=2}
+  - <set lang=en>Hello! 👋
 
   // ── How Are You ────────────────────────────────────────────
   + (koman ou ye|how are you|sa k ap fet|sa kap fet)
-  * <get lang> == en => I'm doing well, thanks! 😊 How can I help you today?
-  - Mwen byen, mèsi! 😊 Kijan m ka ede w jodi a?
+  * <get lang> == en => I'm good, thanks! 😊 You?
+  - Mwen byen, mèsi! 😊 E ou menm?
 
-  // ── Thanks ─────────────────────────────────────────────────
+  // ── Thanks — short and sweet ────────────────────────────────
   + (mesi|merci|thanks|thank) *
-  * <get lang> == en => You're welcome! {random}😊|🙏|👍{/random} Type *help* if you need anything else.
-  - Avèk plezi! {random}😊|🙏|👍{/random} Tape *help* si w bezwen lòt bagay.
+  * <get lang> == en => {random}No problem!|Happy to help!|Anytime! 👍{/random}
+  - {random}Pa gen pwoblèm!|Avèk plezi!|Nenpòt lè! 👍{/random}
 
   + (mesi|merci|thanks|thank)
-  * <get lang> == en => You're welcome! {random}😊|🙏|👍{/random} Type *help* if you need anything else.
-  - Avèk plezi! {random}😊|🙏|👍{/random} Tape *help* si w bezwen lòt bagay.
+  * <get lang> == en => {random}You're welcome!|Sure thing! 👍|No worries!{/random}
+  - {random}Avèk plezi!|Pa gen kwa! 👍|Dekwa!{/random}
 
-  // ── Farewell ───────────────────────────────────────────────
+  // ── Farewell — casual ──────────────────────────────────────
   + (orevwa|bye|goodbye|kenbe|babay|adye) *
-  * <get lang> == en => <set topic=random>Goodbye! {random}👋|🌟|✌️{/random} Don't hesitate to come back.
-  - <set topic=random>Orevwa! Kenbe la {random}👋|🌟|✌️{/random} Pa ezite retounen si w bezwen èd.
+  * <get lang> == en => See you! {random}👋|✌️{/random}
+  - Kenbe! {random}👋|✌️{/random}
 
   + (orevwa|bye|goodbye|kenbe|babay|adye)
-  * <get lang> == en => <set topic=random>Goodbye! Have a great day {random}🌟|☀️|🙌{/random}
-  - <set topic=random>Babay! Pase yon bon jounen {random}🌟|☀️|🙌{/random}
+  * <get lang> == en => Bye! {random}👋|🙌{/random}
+  - Babay! {random}👋|🙌{/random}
 
   // ── Sentiment Detection ────────────────────────────────────
-  // Catch frustration/positivity keywords anywhere in message.
-  // Sets mood var, included in AI context for tone adaptation.
-
   + [*] (@frustration) [*]
-  * <get lang> == en => <set mood=frustrated>😔 I understand you're frustrated. Let me try to help better.
-  ^ Type *help* to see what I can do, or describe your issue and I'll do my best.
-  - <set mood=frustrated>😔 Mwen konprann ou fristré. Kite m eseye ede w pi byen.
-  ^ Tape *help* pou wè opsyon yo, oswa eksplike pwoblèm ou an epi m ap fè sa m kapab.
+  * <get lang> == en => <set mood=frustrated>I hear you. 😔 Tell me what's going on and I'll try to help.
+  - <set mood=frustrated>Mwen konprann. 😔 Di m kisa k ap pase epi m ap eseye ede w.
 
   + [*] (@positive) [*]
-  * <get lang> == en => <set mood=happy>😊 Great to hear! What can I help you with?
-  - <set mood=happy>😊 Kontan tande sa! Kisa m ka fè pou ou?
+  * <get lang> == en => <set mood=happy>😊
+  - <set mood=happy>😊
 
   // ── Persona Switching ────────────────────────────────────────
-  // "pale ak vant" / "talk to sales" → gateway re-routes to new persona.
-  // The {{persona_switch}} sentinel is intercepted by engine.py.
-
+  // Note: triggers can ONLY use lowercase ASCII, no accented chars
   + [*] (pale ak|talk to) (vant|sales) [*]
   * <get lang> == en => <set switch_persona=konex-sales>{{persona_switch}}
   - <set switch_persona=konex-sales>{{persona_switch}}
 
-  + [*] (pale ak|talk to) (sipò|support|teknik) [*]
+  + [*] (pale ak|talk to) (support|teknik) [*]
   * <get lang> == en => <set switch_persona=konex-support>{{persona_switch}}
   - <set switch_persona=konex-support>{{persona_switch}}
 
-  + [*] (pale ak|talk to) (talkprep|coach|preparation|preparasyon) [*]
+  + [*] (pale ak|talk to) (talkprep|coach|preparation) [*]
   * <get lang> == en => <set switch_persona=talkprep>{{persona_switch}}
   - <set switch_persona=talkprep>{{persona_switch}}
 
-  // ── Capabilities (redirects to persona-specific help) ─────
+  // ── Capabilities ───────────────────────────────────────────
   + (what can you do|what ou ka do|kisa ou ka do)
   @ help
 

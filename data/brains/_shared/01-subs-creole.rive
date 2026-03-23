@@ -60,8 +60,6 @@
 ! sub kk     = ok
 ! sub oui    = wi
 ! sub non    = no
-! sub dak    = dakò
-! sub ok     = dakò
 ! sub svp    = tanpri
 ! sub stp    = tanpri
 ! sub souple = tanpri
@@ -74,7 +72,6 @@
 ! sub lap    = li ap
 ! sub yap    = yo ap
 ! sub tap    = te ap
-! sub tande  = tann
 ! sub kotem  = kote mwen
 ! sub kotew  = kote ou
 ! sub kotel  = kote li

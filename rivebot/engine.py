@@ -380,6 +380,11 @@ def match(message: str, persona: str, user_id: str = "user") -> dict:
         _analytics[persona]["_macro_error"] += 1
         return {"matched": True, "response": friendly, "context": context}
 
+    # Sentinel: silence — trigger matched but no reply needed
+    if reply and reply.strip() == "{{silent}}":
+        logger.debug(f"[engine] {persona}:{user_id} → silent (no reply)")
+        return {"matched": True, "response": "", "context": context}
+
     # Sentinel: persona switch request
     if reply and reply.strip() == "{{persona_switch}}":
         target = rs.get_uservar(user_id, "switch_persona")

@@ -201,6 +201,16 @@
   + push siyuan
   - <call>push_to_siyuan</call>
 
+  // ── Acknowledgments — stay silent ────────────────────────────
+  + (ok|okay|ok sa|oke|alright|aight|gotcha|bet|cool|nice|lol|haha|mdrrr)
+  - {{silent}}
+
+  + (wi|yes|yeah|yep)
+  - {{silent}}
+
+  + (no|nah|nope)
+  - {{silent}}
+
   // ── AI Fallback ────────────────────────────────────────────
   + *
   - {{ai_fallback}}

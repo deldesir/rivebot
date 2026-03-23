@@ -1,40 +1,33 @@
 // ═══════════════════════════════════════════════════════════════
 //  User Onboarding Flow
 //
-//  Triggered on first contact (onboarded var undefined).
-//  Collects: language preference, user name.
-//  Ends by setting onboarded=true, welcomed=true, returns to random.
-//
-//  Features:
-//    • <get>/<set> — accumulate name, lang, welcomed flag
-//    • * conditions — bilingual branching
+//  First contact → asks for name → sets onboarded=true.
+//  Quick, casual, doesn't feel like a form.
 // ═══════════════════════════════════════════════════════════════
 
 ! local concat = newline
 
 > topic onboarding
 
-  // ── Step 1: Language detection (entry point) ──────────────
+  // ── Entry: ask for name ────────────────────────────────────
   + _
-  * <get lang> == en => {topic=onboarding_name_en}Hi! Before we start, what's your name?
-  - {topic=onboarding_name_ht}Bonjou! Anvan nou kòmanse, kijan yo rele w?
+  * <get lang> == en => {topic=onboarding_name_en}Hey! What's your name?
+  - {topic=onboarding_name_ht}Yo! Kijan yo rele w?
 
 < topic
 
 
 > topic onboarding_name_ht
-  // ── Step 2 (HT): Collect name ─────────────────────────────
   + _
   - <set name=<star>><set onboarded=true><set welcomed=true><set topic=random>
-  ^ ✅ Enchante, <get name>! Byenveni nan <bot name>.
-  ^ \nTape *help* pou wè tout sa m ka fè pou ou.
+  ^ Enchante <get name>! 🤝
+  ^ \nMwen la pou ede w. Jis di m kisa w bezwen.
 < topic
 
 
 > topic onboarding_name_en
-  // ── Step 2 (EN): Collect name ─────────────────────────────
   + _
   - <set name=<star>><set onboarded=true><set welcomed=true><set topic=random>
-  ^ ✅ Nice to meet you, <get name>! Welcome to <bot name>.
-  ^ \nType *help* to see everything I can do for you.
+  ^ Nice to meet you, <get name>! 🤝
+  ^ \nI'm here to help. Just tell me what you need.
 < topic

@@ -380,6 +380,15 @@ def match(message: str, persona: str, user_id: str = "user") -> dict:
         _analytics[persona]["_macro_error"] += 1
         return {"matched": True, "response": friendly, "context": context}
 
+    # Sentinel: persona switch request
+    if reply and reply.strip() == "{{persona_switch}}":
+        target = rs.get_uservar(user_id, "switch_persona")
+        if target and target != "undefined":
+            context["switch_persona"] = target
+            _analytics[persona]["_persona_switch"] += 1
+            logger.info(f"[engine] {persona}:{user_id} → persona switch to '{target}'")
+            return {"matched": True, "response": None, "context": context}
+
     # Sentinel: the brain explicitly delegated to AI
     if not reply or reply.strip() == "{{ai_fallback}}" or reply.startswith("ERR:"):
         _analytics[persona]["_ai_fallback"] += 1

@@ -73,6 +73,22 @@
   * <get lang> == en => <set mood=happy>😊 Great to hear! What can I help you with?
   - <set mood=happy>😊 Kontan tande sa! Kisa m ka fè pou ou?
 
+  // ── Persona Switching ────────────────────────────────────────
+  // "pale ak vant" / "talk to sales" → gateway re-routes to new persona.
+  // The {{persona_switch}} sentinel is intercepted by engine.py.
+
+  + [*] (pale ak|talk to) (vant|sales) [*]
+  * <get lang> == en => <set switch_persona=konex-sales>{{persona_switch}}
+  - <set switch_persona=konex-sales>{{persona_switch}}
+
+  + [*] (pale ak|talk to) (sipò|support|teknik) [*]
+  * <get lang> == en => <set switch_persona=konex-support>{{persona_switch}}
+  - <set switch_persona=konex-support>{{persona_switch}}
+
+  + [*] (pale ak|talk to) (talkprep|coach|preparation|preparasyon) [*]
+  * <get lang> == en => <set switch_persona=talkprep>{{persona_switch}}
+  - <set switch_persona=talkprep>{{persona_switch}}
+
   // ── Capabilities (redirects to persona-specific help) ─────
   + (what can you do|what ou ka do|kisa ou ka do)
   @ help

@@ -3,14 +3,18 @@
 //
 //  First contact → asks for name → sets onboarded=true.
 //  Quick, casual, doesn't feel like a form.
+//
+//  If name is already known (injected from WhatsApp contact),
+//  skip the name question and greet directly.
 // ═══════════════════════════════════════════════════════════════
 
 ! local concat = newline
 
 > topic onboarding
 
-  // ── Entry: ask for name ────────────────────────────────────
+  // ── Entry: check if name already injected ──────────────────
   + _
+  * <get name> != undefined => <set onboarded=true><set welcomed=true><set topic=random>Nice to meet you, <get name>! 🤝\nI'm here to help. Just tell me what you need.
   * <get lang> == en => {topic=onboarding_name_en}Hey! What's your name?
   - {topic=onboarding_name_ht}Yo! Kijan yo rele w?
 

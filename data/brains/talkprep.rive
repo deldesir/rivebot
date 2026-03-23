@@ -21,7 +21,7 @@
 // ═════════════════════════════════════════════════════════════
 //  BASE TOPIC — all triggers available
 // ═════════════════════════════════════════════════════════════
-> topic random includes conversation jwlinker
+> topic random includes conversation
 
   // ── Help ───────────────────────────────────────────────────
   + (help|ede|èd)
@@ -98,7 +98,90 @@
   + show talks
   - <call>talkmaster_status</call>
 
-  // Publications, topics, anki, siyuan → see _common/jwlinker.rive
+  // ── Publications ───────────────────────────────────────────
+  + (show|montre|wè|gade) (publications|piblikasyon)
+  @ show pubs
+
+  + (list|lis) (publications|piblikasyon)
+  @ show pubs
+
+  + (publications|piblikasyon)
+  @ show pubs
+
+  + what [are the] (books|publications|pubs|piblikasyon|liv)
+  @ show pubs
+
+  + what (piblikasyon|liv|dokiman)
+  @ show pubs
+
+  + show (piblikasyon|liv|dokiman)
+  @ show pubs
+
+  + show pubs
+  - <call>list_publications</call>
+
+  // ── Topics for a Publication ───────────────────────────────
+  + list topics *
+  - <call>list_topics <star></call>
+
+  + (topics|sijè) [in|nan] *
+  - <call>list_topics <star></call>
+
+  + what sijè [in|nan] *
+  - <call>list_topics <star></call>
+
+  + (show|montre) (topics|sijè) [in|nan] *
+  - <call>list_topics <star></call>
+
+  + (show|montre) (topics|sijè) *
+  - <call>list_topics <star></call>
+
+  // ── Anki Deck Generation ───────────────────────────────────
+  + generate anki deck *
+  - <call>generate_anki_deck <star></call>
+
+  + generate anki *
+  - <call>generate_anki_deck <star></call>
+
+  + anki deck *
+  - <call>generate_anki_deck <star></call>
+
+  + anki for *
+  - <call>generate_anki_deck <star></call>
+
+  + (flashcards|kat memwa|kat anki) *
+  - <call>generate_anki_deck <star></call>
+
+  + (kreye|create) kat anki *
+  - <call>generate_anki_deck <star></call>
+
+  + generate anki deck
+  - <call>generate_anki_deck</call>
+
+  + (anki|flashcards|kat memwa|kat anki)
+  - <call>generate_anki_deck</call>
+
+  + (kreye|create) kat anki
+  - <call>generate_anki_deck</call>
+
+  // ── SiYuan Push ────────────────────────────────────────────
+  + (push|voye) to siyuan *
+  - <call>push_to_siyuan <star></call>
+
+  + (export|ekspòte|voye) (to|nan) siyuan *
+  - <call>push_to_siyuan <star></call>
+
+  + voye nan siyuan *
+  - <call>push_to_siyuan <star></call>
+
+  + (push|voye) to siyuan
+  - <call>push_to_siyuan</call>
+
+  + (export|ekspòte|voye) (to|nan) siyuan
+  - <call>push_to_siyuan</call>
+
+  + voye nan siyuan
+  - <call>push_to_siyuan</call>
 
   // ── Import Talk ────────────────────────────────────────────
   + (import|enpòte|pote) (talk|diskou) *

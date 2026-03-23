@@ -11,7 +11,7 @@
 ! var persona = support
 
 // ── Main Topic (includes shared conversation) ────────────────
-> topic random includes conversation jwlinker
+> topic random includes conversation
 
   // ── Help ───────────────────────────────────────────────────
   + (help|ede|èd)

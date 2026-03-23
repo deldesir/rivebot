@@ -6,6 +6,10 @@
 //  Speech/talk preparation assistant. Guides users through a
 //  staged workflow: Import → Revision → Development →
 //  Evaluation → Rehearsal → Export.
+//
+//  All tool triggers live in the random topic so they're always
+//  reachable. Stage gates are enforced server-side in the tool
+//  functions, not via RiveScript topic locking.
 // ═══════════════════════════════════════════════════════════════
 
 ! local concat = newline
@@ -15,7 +19,7 @@
 ! var persona = talkprep
 
 // ═════════════════════════════════════════════════════════════
-//  BASE TOPIC — always available
+//  BASE TOPIC — all triggers available
 // ═════════════════════════════════════════════════════════════
 > topic random includes conversation
 
@@ -26,7 +30,10 @@
   ^ \n• *show my talks* — list your talks
   ^ \n• *status* — see where you are
   ^ \n• *show publications* — browse source documents
+  ^ \n• *list topics [pub]* — see talks in a publication
   ^ \n• *import talk [name]* — start a new talk
+  ^ \n• *use talk [id]* — switch active talk
+  ^ \n• *create revision [name] [audience]* — tailor for audience
   ^ \n• *develop section [name]* — write a section (AI)
   ^ \n• *evaluate talk* — score your talk (AI)
   ^ \n• *rehearsal* — coaching tips (AI)
@@ -36,17 +43,20 @@
   ^ \n• *cost* — see token usage
   - 📚 *TalkPrep — Koman w ka itilize m:*
   ^ \n
-  ^ \n• *montre diskou mwen* / *show my talks* — lis diskou w yo
-  ^ \n• *estati* / *status* — wè kote w ye
-  ^ \n• *piblikasyon* / *show publications* — navigate dokiman sou
-  ^ \n• *enpòte diskou [non]* / *import talk [name]* — komanso yon diskou
-  ^ \n• *devlope seksyon [non]* / *develop section [name]* — ekri yon seksyon (AI)
-  ^ \n• *evalye diskou* / *evaluate talk* — nwòt diskou w (AI)
-  ^ \n• *repete* / *rehearsal* — konsèy pou pratik (AI)
-  ^ \n• *ekspòte* / *export* — jenere maniskri final
-  ^ \n• *kreye kat anki [pub]* / *generate anki deck* — kat mèmwa
-  ^ \n• *voye nan siyuan [pub]* / *push to siyuan* — ekspòte nan SiYuan
-  ^ \n• *depans* / *cost* — wè konsomasyon token
+  ^ \n• *montre diskou mwen* — lis diskou w yo
+  ^ \n• *estati* — wè kote w ye
+  ^ \n• *piblikasyon* — navigate dokiman sous
+  ^ \n• *sijè nan [pub]* — wè diskou nan yon piblikasyon
+  ^ \n• *enpòte diskou [non]* — komanso yon diskou
+  ^ \n• *itilize diskou [id]* — chwazi yon diskou aktif
+  ^ \n• *kreye revizyon [non] [odyans]* — adapte pou odyans
+  ^ \n• *devlope seksyon [non]* — ekri yon seksyon (AI)
+  ^ \n• *evalye diskou* — nòt diskou w (AI)
+  ^ \n• *repete* — konsèy pou pratik (AI)
+  ^ \n• *ekspòte* — jenere maniskri final
+  ^ \n• *kreye kat anki [pub]* — kat mèmwa
+  ^ \n• *voye nan siyuan [pub]* — ekspòte nan SiYuan
+  ^ \n• *depans* — wè konsomasyon token
 
   // ── Status / My Talks ──────────────────────────────────────
   + (status|estati)
@@ -82,6 +92,9 @@
   + show diskou mwen
   @ show talks
 
+  + montre diskou m
+  @ show talks
+
   + show talks
   - <call>talkmaster_status</call>
 
@@ -107,6 +120,9 @@
   + show (piblikasyon|liv|dokiman)
   @ show pubs
 
+  + (piblikasyon|publications)
+  @ show pubs
+
   + show pubs
   - <call>list_publications</call>
 
@@ -119,6 +135,79 @@
 
   + what sijè [in] *
   - <call>list_topics <star></call>
+
+  + (show|montre) (topics|sijè) [in|nan] *
+  - <call>list_topics <star></call>
+
+  // ── Import Talk ────────────────────────────────────────────
+  + (import|enpòte|pote) (talk|diskou) *
+  - <call>import_talk <star></call>
+
+  + (import|enpòte|pote) *
+  - <call>import_talk <star></call>
+
+  + (start|kòmanse) [a] [new|nouvo] (talk|diskou) [about|sou] *
+  - <call>import_talk <star></call>
+
+  // ── Select / Switch Talk ───────────────────────────────────
+  + (select|chwazi) (talk|diskou) *
+  - <call>select_active_talk <star></call>
+
+  + (use|switch to|itilize) (talk|diskou) *
+  - <call>select_active_talk <star></call>
+
+  + (use|itilize) (talk|diskou) #
+  - <call>select_active_talk <star></call>
+
+  // ── Create Revision ────────────────────────────────────────
+  + (create|new|kreye|nouvo) (revision|revizyon) *
+  - <call>create_revision <star></call>
+
+  + (revision|revizyon) *
+  - <call>create_revision <star></call>
+
+  + (revise|revize) *
+  - <call>create_revision <star></call>
+
+  // ── Develop Section ────────────────────────────────────────
+  + (develop|devlope) [section|seksyon] *
+  - <call>develop_section <star></call>
+
+  + (write|ekri) [section|seksyon] *
+  - <call>develop_section <star></call>
+
+  + (generate|jenere) [section|seksyon] *
+  - <call>develop_section <star></call>
+
+  // ── Evaluate Talk ──────────────────────────────────────────
+  + (evaluate|evalye) [talk|diskou]
+  - <call>evaluate_talk</call>
+
+  + (evaluate|evalye) [my] (talk|diskou)
+  - <call>evaluate_talk</call>
+
+  + (scores|score|results|rezilta|nòt) [for|pou] *
+  - <call>get_evaluation_scores <star></call>
+
+  + (scores|score|results|rezilta|nòt)
+  - <call>get_evaluation_scores</call>
+
+  // ── Rehearsal ──────────────────────────────────────────────
+  + (rehearsal|rehearse|practice|repete|pratike|repetisyon) *
+  - <call>rehearsal_cue <star></call>
+
+  + (rehearsal|rehearse|practice|repete|pratike|repetisyon)
+  - <call>rehearsal_cue</call>
+
+  + (cues|coaching|tips|konsèy) [for|pou] *
+  - <call>rehearsal_cue <star></call>
+
+  // ── Export ─────────────────────────────────────────────────
+  + (export|ekspòte|enprime|maniskri) *
+  - <call>export_talk_summary <star></call>
+
+  + (export|ekspòte|enprime|maniskri|final|manuscript)
+  - <call>export_talk_summary</call>
 
   // ── Cost Report ────────────────────────────────────────────
   + (cost|usage|tokens|depans|konsomasyon)
@@ -170,6 +259,9 @@
   + create kat anki
   @ make anki
 
+  + (kreye|generate) kat anki *
+  @ make anki <star>
+
   + make anki *
   - <call>generate_anki_deck <star></call>
 
@@ -186,6 +278,9 @@
   + voye in siyuan *
   @ push siyuan <star>
 
+  + voye nan siyuan *
+  @ push siyuan <star>
+
   + (push|voye) to siyuan
   @ push siyuan
 
@@ -193,6 +288,9 @@
   @ push siyuan
 
   + voye in siyuan
+  @ push siyuan
+
+  + voye nan siyuan
   @ push siyuan
 
   + push siyuan *
@@ -214,93 +312,5 @@
   // ── AI Fallback ────────────────────────────────────────────
   + *
   - {{ai_fallback}}
-
-< topic
-
-// ═════════════════════════════════════════════════════════════
-//  STAGE TOPICS — progressive capability unlock
-// ═════════════════════════════════════════════════════════════
-
-// ── Stage 1: Import ──────────────────────────────────────────
-> topic stage_1 inherits random
-
-  + (import|enpòte|pote) (talk|diskou) *
-  - <call>import_talk <star></call>
-
-  + (import|enpòte|pote) *
-  - <call>import_talk <star></call>
-
-  + (start|kòmanse) [a] [new|nouvo] (talk|diskou) [about|sou] *
-  - <call>import_talk <star></call>
-
-  + (select|chwazi) (talk|diskou) *
-  - <call>select_active_talk <star></call>
-
-  + (use|switch to|itilize) (talk|diskou) *
-  - <call>select_active_talk <star></call>
-
-< topic
-
-// ── Stage 2: Revision ────────────────────────────────────────
-> topic stage_2 inherits stage_1
-
-  + (create|new|kreye|nouvo) (revision|revizyon) *
-  - <call>create_revision <star></call>
-
-  + (revision|revizyon) *
-  - <call>create_revision <star></call>
-
-  + (revise|revize) *
-  - <call>create_revision <star></call>
-
-< topic
-
-// ── Stage 3: Development ─────────────────────────────────────
-> topic stage_3 inherits stage_2
-
-  + (develop|devlope) [section|seksyon] *
-  - <call>develop_section <star></call>
-
-  + (write|ekri) [section|seksyon] *
-  - <call>develop_section <star></call>
-
-  + (generate|jenere) [section|seksyon] *
-  - <call>develop_section <star></call>
-
-< topic
-
-// ── Stage 4: Evaluation ──────────────────────────────────────
-> topic stage_4 inherits stage_3
-
-  + (evaluate|evalye) [talk|diskou]
-  - <call>evaluate_talk</call>
-
-  + (evaluate|evalye) [my] (talk|diskou)
-  - <call>evaluate_talk</call>
-
-  + (scores|score|results|rezilta|nòt) [for|pou] *
-  - <call>get_evaluation_scores <star></call>
-
-  + (scores|score|results|rezilta|nòt)
-  - <call>get_evaluation_scores</call>
-
-< topic
-
-// ── Stage 5: Rehearsal ───────────────────────────────────────
-> topic stage_5 inherits stage_4
-
-  + (rehearsal|rehearse|practice|repete|pratike|repetisyon) [*]
-  - <call>rehearsal_cue <star></call>
-
-  + (cues|coaching|tips|konsèy) [for|pou] *
-  - <call>rehearsal_cue <star></call>
-
-< topic
-
-// ── Stage 6: Export ──────────────────────────────────────────
-> topic stage_6 inherits stage_5
-
-  + (export|print|final|manuscript|ekspòte|enprime|maniskri) [*]
-  - <call>export_talk_summary <star></call>
 
 < topic

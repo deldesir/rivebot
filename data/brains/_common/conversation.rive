@@ -60,21 +60,61 @@
   - <set mood=happy>😊
 
   // ── Persona Switching ────────────────────────────────────────
-  // Note: triggers can ONLY use lowercase ASCII, no accented chars
-  + [*] (pale ak|talk to) (vant|sales) [*]
-  * <get lang> == en => <set switch_persona=konex-sales>{{persona_switch}}
+  // Simple direct triggers — no [*] optionals or @ redirects
+  // which may not work correctly with this RiveScript fork.
+
+  + talk to sales
   - <set switch_persona=konex-sales>{{persona_switch}}
 
-  + [*] (pale ak|talk to) (support|teknik) [*]
-  * <get lang> == en => <set switch_persona=konex-support>{{persona_switch}}
+  + talk to sales *
+  - <set switch_persona=konex-sales>{{persona_switch}}
+
+  + pale ak vant
+  - <set switch_persona=konex-sales>{{persona_switch}}
+
+  + pale ak vant *
+  - <set switch_persona=konex-sales>{{persona_switch}}
+
+  + talk to support
   - <set switch_persona=konex-support>{{persona_switch}}
 
-  + [*] (pale ak|talk to) (talkprep|coach|preparation) [*]
-  * <get lang> == en => <set switch_persona=talkprep>{{persona_switch}}
+  + talk to support *
+  - <set switch_persona=konex-support>{{persona_switch}}
+
+  + pale ak support
+  - <set switch_persona=konex-support>{{persona_switch}}
+
+  + pale ak teknik
+  - <set switch_persona=konex-support>{{persona_switch}}
+
+  + talk to talkprep
   - <set switch_persona=talkprep>{{persona_switch}}
 
-  + [*] (go back|retounen|back|talk to assistant) [*]
-  * <get lang> == en => <set switch_persona=assistant>{{persona_switch}}
+  + talk to talkprep *
+  - <set switch_persona=talkprep>{{persona_switch}}
+
+  + pale ak talkprep
+  - <set switch_persona=talkprep>{{persona_switch}}
+
+  + talk to coach
+  - <set switch_persona=talkprep>{{persona_switch}}
+
+  + pale ak coach
+  - <set switch_persona=talkprep>{{persona_switch}}
+
+  + go back
+  - <set switch_persona=assistant>{{persona_switch}}
+
+  + retounen
+  - <set switch_persona=assistant>{{persona_switch}}
+
+  + back
+  - <set switch_persona=assistant>{{persona_switch}}
+
+  + talk to assistant
+  - <set switch_persona=assistant>{{persona_switch}}
+
+  + pale ak assistant
   - <set switch_persona=assistant>{{persona_switch}}
 
   // ── Capabilities ───────────────────────────────────────────

@@ -40,7 +40,9 @@
   @ fetch profile
 
   + fetch profile
-  - <call>fetch_dossier</call>
+  - 📋 *Pwofil ou:*
+  ^ \nNon: <get name>
+  ^ \n\nPou plis enfòmasyon, kontakte sipò: tape *ouvri tiket*
 
   // ── Support Ticket Form ────────────────────────────────────
   + (ouvri tiket|open ticket|tiket|ticket|pwoblèm|report issue)

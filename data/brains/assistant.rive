@@ -1,0 +1,57 @@
+! version = 2.0
+
+// ═══════════════════════════════════════════════════════════════
+//  Assistant — default persona
+//
+//  Simple, human, casual. Not a business bot.
+//  Shows a persona catalog when asked for help.
+// ═══════════════════════════════════════════════════════════════
+
+! local concat = newline
+
+// ── Persona Identity ─────────────────────────────────────────
+! var name    = Assistant
+! var persona = assistant
+
+// ── Main Topic (includes shared conversation) ────────────────
+> topic random includes conversation
+
+  // ── Help / Persona Catalog ─────────────────────────────────
+  + (help|ede|èd|menu)
+  * <get lang> == en => Here's what I can do:
+  ^ \n
+  ^ \n💬 *Chat* — just talk to me naturally
+  ^ \n🛒 *talk to sales* — plans, pricing, promos
+  ^ \n🔧 *talk to support* — tech help, tickets
+  ^ \n📖 *talk to talkprep* — sermon prep coach
+  ^ \n
+  ^ \nOr just ask me anything 👇
+  - Men sa m ka fè pou ou:
+  ^ \n
+  ^ \n💬 *Chat* — jis pale avè m nòmalman
+  ^ \n🛒 *pale ak vant* — plan, pri, pwomosyon
+  ^ \n🔧 *pale ak support* — èd teknik, tiket
+  ^ \n📖 *pale ak talkprep* — coaching prèch
+  ^ \n
+  ^ \nOswa jis poze m kesyon w 👇
+
+  // ── Who are you ────────────────────────────────────────────
+  + (who are you|ki moun ou ye|kiles ou ye|what are you)
+  * <get lang> == en => I'm your assistant 😊 I can chat, answer questions, or connect you with a specialist. Type *help* to see what's available.
+  - Mwen se asistan w 😊 Mwen ka pale, reponn kesyon, oswa konekte w ak yon espesyalis. Tape *ede* pou wè sa ki disponib.
+
+  // ── Acknowledgments — stay silent ──────────────────────────
+  + (ok|okay|ok sa|oke|alright|aight|gotcha|bet|cool|nice|lol|haha|mdrrr)
+  - {{silent}}
+
+  + (wi|yes|yeah|yep)
+  - {{silent}}
+
+  + (no|nah|nope)
+  - {{silent}}
+
+  // ── AI Fallback ────────────────────────────────────────────
+  + *
+  - {{ai_fallback}}
+
+< topic

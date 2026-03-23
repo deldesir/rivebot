@@ -73,6 +73,10 @@
   * <get lang> == en => <set switch_persona=talkprep>{{persona_switch}}
   - <set switch_persona=talkprep>{{persona_switch}}
 
+  + [*] (go back|retounen|back|talk to assistant) [*]
+  * <get lang> == en => <set switch_persona=assistant>{{persona_switch}}
+  - <set switch_persona=assistant>{{persona_switch}}
+
   // ── Capabilities ───────────────────────────────────────────
   + (what can you do|what ou ka do|kisa ou ka do)
   @ help

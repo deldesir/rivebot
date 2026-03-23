@@ -53,6 +53,13 @@ class SetVarRequest(BaseModel):
     value: str
 
 
+class SetVarsRequest(BaseModel):
+    """Batch set multiple variables in one call."""
+    persona: str
+    user: str
+    vars: dict[str, str]  # {"name": "Blondel", "onboarded": "true", ...}
+
+
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
 @app.post("/match")
@@ -107,6 +114,24 @@ async def set_var(req: SetVarRequest) -> dict:
             from fastapi import HTTPException
             raise HTTPException(status_code=404, detail=f"No brain for persona '{req.persona}'")
         return {"ok": True, "persona": req.persona, "user": req.user, "var": req.var, "value": req.value}
+
+
+@app.post("/set-vars")
+async def set_vars(req: SetVarsRequest) -> dict:
+    """Batch-set multiple RiveScript user variables in one call.
+
+    Used by the AI Gateway to inject WhatsApp contact name + onboarded
+    state in a single round-trip instead of 3 sequential /set-var calls.
+
+    Example:
+        POST /set-vars {"persona":"konex-support","user":"+509...",
+                        "vars":{"name":"Blondel","onboarded":"true","welcomed":"true"}}
+    """
+    for var, value in req.vars.items():
+        ok = engine.set_uservar(req.persona, req.user, var, value)
+        if not ok:
+            raise HTTPException(status_code=404, detail=f"No brain for persona '{req.persona}'")
+    return {"ok": True, "persona": req.persona, "user": req.user, "vars": req.vars}
 
 
 @app.post("/set-topic")

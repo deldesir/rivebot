@@ -56,12 +56,12 @@
 
   // ── Upgrade / Promotions ───────────────────────────────────
   + (upgrade|monte|chanje plan) [*]
-  - 🚀 Kite m ede w monte plan w! M ap voye w yon fòm pou chwazi.
-  ^ \n<call>start_flow upgrade_flow</call>
+  - 🚀 Kite m ede w monte plan w!
+  ^ \nEkri *plans* pou wè opsyon yo, epi di m kilès w vle.
 
   + (promo|pwomosyon|promotion|deal) [*]
-  - 🎉 Tcheке pwomosyon ki disponib kounye a:
-  ^ \n<call>start_flow promo_check</call>
+  - 🎉 Pa gen pwomosyon aktif pou kounye a.
+  ^ \nTcheке ankò pita oswa tape *plans* pou wè plan yo!
 
   // ── Account / Profile ──────────────────────────────────────
   + (my|mon) (account|kont|profil|profile)
@@ -77,7 +77,10 @@
   @ fetch account
 
   + fetch account
-  - <call>fetch_dossier</call>
+  - 📋 *Kont ou:*
+  ^ \nNon: <get name>
+  ^ \nPlan: —
+  ^ \n\nPou plis enfòmasyon, kontakte sipò: tape *talk to support*
 
   // ── Upgrade Form ──────────────────────────────────────────
   + (upgrade|amelyore|chanje plan|change plan|pase pi wo)

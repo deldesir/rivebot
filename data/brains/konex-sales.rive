@@ -11,7 +11,7 @@
 ! var persona = sales
 
 // ── Main Topic (includes shared conversation) ────────────────
-> topic random includes conversation
+> topic random includes conversation jwlinker
 
   // ── Help ───────────────────────────────────────────────────
   + (help|ede|èd)

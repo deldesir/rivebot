@@ -21,7 +21,7 @@
 // ═════════════════════════════════════════════════════════════
 //  BASE TOPIC — all triggers available
 // ═════════════════════════════════════════════════════════════
-> topic random includes conversation
+> topic random includes conversation jwlinker
 
   // ── Help ───────────────────────────────────────────────────
   + (help|ede|èd)
@@ -98,46 +98,7 @@
   + show talks
   - <call>talkmaster_status</call>
 
-  // ── Publications ───────────────────────────────────────────
-  + (show|montre|wè|gade) (publications|piblikasyon)
-  @ show pubs
-
-  + (list|lis) (publications|piblikasyon)
-  @ show pubs
-
-  + what [are the] (books|publications|pubs|piblikasyon|liv)
-  @ show pubs
-
-  + what (piblikasyon|liv|dokiman) [what genyen]
-  @ show pubs
-
-  + what (piblikasyon|publications|liv|dokiman) what genyen
-  @ show pubs
-
-  + what (piblikasyon|liv|dokiman)
-  @ show pubs
-
-  + show (piblikasyon|liv|dokiman)
-  @ show pubs
-
-  + (piblikasyon|publications)
-  @ show pubs
-
-  + show pubs
-  - <call>list_publications</call>
-
-  // ── Topics for a Publication ───────────────────────────────
-  + list topics *
-  - <call>list_topics <star></call>
-
-  + (topics|sijè) [in|nan] *
-  - <call>list_topics <star></call>
-
-  + what sijè [in] *
-  - <call>list_topics <star></call>
-
-  + (show|montre) (topics|sijè) [in|nan] *
-  - <call>list_topics <star></call>
+  // Publications, topics, anki, siyuan → see _common/jwlinker.rive
 
   // ── Import Talk ────────────────────────────────────────────
   + (import|enpòte|pote) (talk|diskou) *
@@ -228,76 +189,7 @@
   + show cost
   - <call>cost_report</call>
 
-  // ── Anki Deck Generation ───────────────────────────────────
-  + generate anki deck *
-  @ make anki <star>
 
-  + generate anki *
-  @ make anki <star>
-
-  + anki deck *
-  @ make anki <star>
-
-  + (flashcards|kat memwa|kat anki) *
-  @ make anki <star>
-
-  + (flashcards|kat memwa|kat anki) for *
-  @ make anki <star>
-
-  + anki for *
-  @ make anki <star>
-
-  + create kat anki *
-  @ make anki <star>
-
-  + generate anki deck
-  @ make anki
-
-  + (anki|flashcards|kat memwa|kat anki)
-  @ make anki
-
-  + create kat anki
-  @ make anki
-
-  + (kreye|generate) kat anki *
-  @ make anki <star>
-
-  + make anki *
-  - <call>generate_anki_deck <star></call>
-
-  + make anki
-  - <call>generate_anki_deck</call>
-
-  // ── SiYuan Push ────────────────────────────────────────────
-  + (push|voye) to siyuan *
-  @ push siyuan <star>
-
-  + (export|ekspòte|voye) (to|nan) siyuan *
-  @ push siyuan <star>
-
-  + voye in siyuan *
-  @ push siyuan <star>
-
-  + voye nan siyuan *
-  @ push siyuan <star>
-
-  + (push|voye) to siyuan
-  @ push siyuan
-
-  + (export|ekspòte|voye) (to|nan) siyuan
-  @ push siyuan
-
-  + voye in siyuan
-  @ push siyuan
-
-  + voye nan siyuan
-  @ push siyuan
-
-  + push siyuan *
-  - <call>push_to_siyuan <star></call>
-
-  + push siyuan
-  - <call>push_to_siyuan</call>
 
   // ── Acknowledgments — stay silent ────────────────────────────
   + (ok|okay|ok sa|oke|alright|aight|gotcha|bet|cool|nice|lol|haha|mdrrr)

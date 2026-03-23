@@ -14,7 +14,7 @@
 ! var persona = assistant
 
 // ── Main Topic (includes shared conversation) ────────────────
-> topic random includes conversation
+> topic random includes conversation jwlinker
 
   // ── Help / Persona Catalog ─────────────────────────────────
   + (help|ede|èd|menu)

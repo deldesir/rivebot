@@ -58,18 +58,23 @@ ALLOWED_MACROS: dict[str, str] = {
 }
 
 
-async def call_macro(name: str, args: str, user_id: str) -> str:
+# Context var names tracked between tool calls
+_CONTEXT_VARS = ("active_pub", "active_talk_id", "active_revision")
+
+
+async def call_macro(name: str, args: str, user_id: str,
+                     context: dict | None = None) -> str:
     """
     Call a whitelisted macro via HTTP to the gateway tool endpoint.
 
-    No-arg calls use GET /v1/tools/{name}.
-    Calls with args use POST /v1/tools/{name} with body {"_args": ["a", "b"]}.
-    The gateway maps positional args to the tool's Pydantic field names.
+    Sends active context vars (active_pub, active_talk_id, active_revision)
+    as HTTP headers so tools can auto-infer missing arguments.
 
     Args:
         name: Macro name from <call>name args</call>.
         args: Space-separated args string (may be empty).
         user_id: User identifier for context.
+        context: Dict of active context vars from RiveBot session.
 
     Returns:
         String response from the tool, or an error message.
@@ -80,19 +85,27 @@ async def call_macro(name: str, args: str, user_id: str) -> str:
 
     path = ALLOWED_MACROS[name]
     headers = {"X-User-Id": user_id}
+
+    # Forward active context vars as headers
+    ctx = context or {}
+    for var in _CONTEXT_VARS:
+        val = ctx.get(var)
+        if val and val != "undefined":
+            # active_pub → X-Active-Pub, active_talk_id → X-Active-Talk-Id
+            suffix = var.removeprefix("active_").replace("_", "-").title()
+            headers[f"X-Active-{suffix}"] = str(val)
+
     arg_list = args.strip().split() if args.strip() else []
 
     try:
         async with httpx.AsyncClient(timeout=MACRO_TIMEOUT) as client:
             if arg_list:
-                # POST with positional args in JSON body
                 resp = await client.post(
                     f"{GATEWAY_URL}{path}",
                     json={"_args": arg_list},
                     headers=headers,
                 )
             else:
-                # GET for no-arg tools
                 resp = await client.get(f"{GATEWAY_URL}{path}", headers=headers)
             resp.raise_for_status()
             data = resp.json()
@@ -108,7 +121,8 @@ async def call_macro(name: str, args: str, user_id: str) -> str:
         return f"⚠️ Could not run `{name}`."
 
 
-def call_macro_sync(name: str, args: str, user_id: str = "user") -> str:
+def call_macro_sync(name: str, args: str, user_id: str = "user",
+                    context: dict | None = None) -> str:
     """Sync wrapper for call_macro — used by the RiveScript Python macro handler.
 
     RiveScript calls this from a synchronous context. We need to run the async
@@ -117,7 +131,7 @@ def call_macro_sync(name: str, args: str, user_id: str = "user") -> str:
     """
     import concurrent.futures
     def _run():
-        return asyncio.run(call_macro(name, args, user_id))
+        return asyncio.run(call_macro(name, args, user_id, context))
     try:
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
             future = pool.submit(_run)
@@ -151,19 +165,44 @@ STAGE_TRANSITIONS: dict[str, str] = {
 }
 
 
+# Context update markers that tools embed in their response text.
+# Format: {{set:<var>:<value>}} — parsed and stripped before returning to user.
+import re as _re
+_CTX_PATTERN = _re.compile(r"\{\{set:(\w+):([^}]*)\}\}")
+
+
+def _parse_context_updates(result: str, rs, user: str) -> str:
+    """Extract {{set:var:value}} markers from tool response, apply to RiveBot vars."""
+    def _apply(m):
+        var, val = m.group(1), m.group(2)
+        if var in _CONTEXT_VARS:
+            rs.set_uservar(user, var, val)
+            logger.info(f"[ctx] {user}: {var}={val}")
+        return ""  # strip marker from user-visible text
+    return _CTX_PATTERN.sub(_apply, result).strip()
+
+
 class MacroBridgeHandler:
     def load(self, rs, code):
         pass
 
     def call(self, rs, name, user, args):
-        result = call_macro_sync(name, " ".join(args), user)
+        # Gather active context vars to send with the tool call
+        context = {}
+        for var in _CONTEXT_VARS:
+            val = rs.get_uservar(user, var)
+            if val and val != "undefined":
+                context[var] = val
+
+        result = call_macro_sync(name, " ".join(args), user, context)
+
+        # Parse and apply context update markers from tool response
+        result = _parse_context_updates(result, rs, user)
 
         # Advance the user's workflow topic if this macro completed a stage.
-        # Only advance — never go backwards — so we check current topic index.
         if name in STAGE_TRANSITIONS and not result.startswith("⚠️") and not result.startswith("⏱️"):
             next_topic = STAGE_TRANSITIONS[name]
             current = rs.get_uservar(user, "topic") or "random"
-            # Topic order for guard
             _ORDER = ["random", "stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "stage_6"]
             curr_idx = _ORDER.index(current) if current in _ORDER else 0
             next_idx = _ORDER.index(next_topic) if next_topic in _ORDER else 0

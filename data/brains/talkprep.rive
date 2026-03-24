@@ -125,16 +125,16 @@
   - <call>list_topics <star></call>
 
   + (topics|sijè) [in|nan] *
-  - <call>list_topics <star></call>
+  - <call>list_topics <star2></call>
 
   + what sijè [in|nan] *
   - <call>list_topics <star></call>
 
   + (show|montre) (topics|sijè) [in|nan] *
-  - <call>list_topics <star></call>
+  - <call>list_topics <star3></call>
 
   + (show|montre) (topics|sijè) *
-  - <call>list_topics <star></call>
+  - <call>list_topics <star3></call>
 
   // ── Anki Deck Generation ───────────────────────────────────
   + generate anki deck *
@@ -150,10 +150,10 @@
   - <call>generate_anki_deck <star></call>
 
   + (flashcards|kat memwa|kat anki) *
-  - <call>generate_anki_deck <star></call>
+  - <call>generate_anki_deck <star2></call>
 
   + (kreye|create) kat anki *
-  - <call>generate_anki_deck <star></call>
+  - <call>generate_anki_deck <star2></call>
 
   + generate anki deck
   - <call>generate_anki_deck</call>
@@ -166,10 +166,10 @@
 
   // ── SiYuan Push ────────────────────────────────────────────
   + (push|voye) to siyuan *
-  - <call>push_to_siyuan <star></call>
+  - <call>push_to_siyuan <star2></call>
 
   + (export|ekspòte|voye) (to|nan) siyuan *
-  - <call>push_to_siyuan <star></call>
+  - <call>push_to_siyuan <star3></call>
 
   + voye nan siyuan *
   - <call>push_to_siyuan <star></call>
@@ -185,43 +185,43 @@
 
   // ── Import Talk ────────────────────────────────────────────
   + (import|enpòte|pote) (talk|diskou) *
-  - <call>import_talk <star></call>
+  - <call>import_talk <star3></call>
 
   + (import|enpòte|pote) *
-  - <call>import_talk <star></call>
+  - <call>import_talk <star2></call>
 
   + (start|kòmanse) [a] [new|nouvo] (talk|diskou) [about|sou] *
-  - <call>import_talk <star></call>
+  - <call>import_talk <star3></call>
 
   // ── Select / Switch Talk ───────────────────────────────────
   + (select|chwazi) (talk|diskou) *
-  - <call>select_active_talk <star></call>
+  - <call>select_active_talk <star3></call>
 
   + (use|switch to|itilize) (talk|diskou) *
-  - <call>select_active_talk <star></call>
+  - <call>select_active_talk <star3></call>
 
   + (use|itilize) (talk|diskou) #
-  - <call>select_active_talk <star></call>
+  - <call>select_active_talk <star3></call>
 
   // ── Create Revision ────────────────────────────────────────
   + (create|new|kreye|nouvo) (revision|revizyon) *
-  - <call>create_revision <star></call>
+  - <call>create_revision <star3></call>
 
   + (revision|revizyon) *
-  - <call>create_revision <star></call>
+  - <call>create_revision <star2></call>
 
   + (revise|revize) *
-  - <call>create_revision <star></call>
+  - <call>create_revision <star2></call>
 
   // ── Develop Section ────────────────────────────────────────
   + (develop|devlope) [section|seksyon] *
-  - <call>develop_section <star></call>
+  - <call>develop_section <star2></call>
 
   + (write|ekri) [section|seksyon] *
-  - <call>develop_section <star></call>
+  - <call>develop_section <star2></call>
 
   + (generate|jenere) [section|seksyon] *
-  - <call>develop_section <star></call>
+  - <call>develop_section <star2></call>
 
   // ── Evaluate Talk ──────────────────────────────────────────
   + (evaluate|evalye) [talk|diskou]
@@ -231,24 +231,24 @@
   - <call>evaluate_talk</call>
 
   + (scores|score|results|rezilta|nòt) [for|pou] *
-  - <call>get_evaluation_scores <star></call>
+  - <call>get_evaluation_scores <star2></call>
 
   + (scores|score|results|rezilta|nòt)
   - <call>get_evaluation_scores</call>
 
   // ── Rehearsal ──────────────────────────────────────────────
   + (rehearsal|rehearse|practice|repete|pratike|repetisyon) *
-  - <call>rehearsal_cue <star></call>
+  - <call>rehearsal_cue <star2></call>
 
   + (rehearsal|rehearse|practice|repete|pratike|repetisyon)
   - <call>rehearsal_cue</call>
 
   + (cues|coaching|tips|konsèy) [for|pou] *
-  - <call>rehearsal_cue <star></call>
+  - <call>rehearsal_cue <star2></call>
 
   // ── Export ─────────────────────────────────────────────────
   + (export|ekspòte|enprime|maniskri) *
-  - <call>export_talk_summary <star></call>
+  - <call>export_talk_summary <star2></call>
 
   + (export|ekspòte|enprime|maniskri|final|manuscript)
   - <call>export_talk_summary</call>

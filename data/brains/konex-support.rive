@@ -49,7 +49,7 @@
   * <get lang> == en => {topic=form_support}What's the issue? Describe it briefly:
   - {topic=form_support}Kisa pwoblèm nan ye? Dekri l an kèk mo:
 
-  // ── Acknowledgments — stay silent (no reply needed) ─────────
+  // ── Acknowledgments — emoji reaction (gateway decides if AI override) ──
   + (ok|okay|ok sa|oke|alright|aight|gotcha|bet|cool|nice|lol|haha|mdrrr)
   - {{silent}}
 

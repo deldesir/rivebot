@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════
 //  User Onboarding Flow
 //
-//  First contact → asks for name → sets onboarded=true.
+//  First contact → asks for name → confirms → sets onboarded=true.
 //  Quick, casual, doesn't feel like a form.
 //
 //  If name is already known (injected from WhatsApp contact),
@@ -18,20 +18,55 @@
   * <get lang> == en => {topic=onboarding_name_en}Hey! What's your name?
   - {topic=onboarding_name_ht}Yo! Kijan yo rele w?
 
+  + (help|ede|cancel|annile|back|retounen)
+  - <set topic=random>Ok! Tape *help* pou wè sa m ka fè pou ou.
+
 < topic
 
 
 > topic onboarding_name_ht
   + _
-  - <set name=<star>><set onboarded=true><set welcomed=true><set topic=random>
+  - <set name=<star>>{topic=onboarding_confirm_ht}
+  ^ Ou rele *<get name>*? Tape *wi* pou konfime oswa *non* pou rekòmanse.
+
+  + (help|ede|cancel|annile|back|retounen)
+  - <set topic=random>Ok! Tape *help* pou wè sa m ka fè pou ou.
+< topic
+
+
+> topic onboarding_confirm_ht
+  + (wi|yes|oui|ok|dakò)
+  - <set onboarded=true><set welcomed=true><set topic=random>
   ^ Enchante <get name>! 🤝
   ^ \nMwen la pou ede w. Jis di m kisa w bezwen.
+
+  + (non|no|nan)
+  - <set name=>{topic=onboarding_name_ht}Ok, kisa non w ye?
+
+  + *
+  - Tape *wi* pou konfime oswa *non* pou rekòmanse.
 < topic
 
 
 > topic onboarding_name_en
   + _
-  - <set name=<star>><set onboarded=true><set welcomed=true><set topic=random>
+  - <set name=<star>>{topic=onboarding_confirm_en}
+  ^ You said *<get name>*? Type *yes* to confirm or *no* to redo.
+
+  + (help|cancel|back)
+  - <set topic=random>Ok! Type *help* to see what I can do for you.
+< topic
+
+
+> topic onboarding_confirm_en
+  + (yes|yeah|yep|ok|sure)
+  - <set onboarded=true><set welcomed=true><set topic=random>
   ^ Nice to meet you, <get name>! 🤝
   ^ \nI'm here to help. Just tell me what you need.
+
+  + (no|nah|nope)
+  - <set name=>{topic=onboarding_name_en}Ok, what's your name?
+
+  + *
+  - Type *yes* to confirm or *no* to redo.
 < topic

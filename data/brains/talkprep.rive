@@ -274,7 +274,7 @@
 
 
 
-  // ── Acknowledgments — stay silent ────────────────────────────
+  // ── Acknowledgments — emoji reaction (gateway decides if AI override) ──
   + (ok|okay|ok sa|oke|alright|aight|gotcha|bet|cool|nice|lol|haha|mdrrr)
   - {{silent}}
 

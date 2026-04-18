@@ -40,7 +40,7 @@
   * <get lang> == en => I'm your assistant 😊 I can chat, answer questions, or connect you with a specialist. Type *help* to see what's available.
   - Mwen se asistan w 😊 Mwen ka pale, reponn kesyon, oswa konekte w ak yon espesyalis. Tape *ede* pou wè sa ki disponib.
 
-  // ── Acknowledgments — stay silent ──────────────────────────
+  // ── Acknowledgments — emoji reaction (gateway decides if AI override) ──
   + (ok|okay|ok sa|oke|alright|aight|gotcha|bet|cool|nice|lol|haha|mdrrr)
   - {{silent}}
 

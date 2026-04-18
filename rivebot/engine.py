@@ -164,12 +164,23 @@ def reload_all() -> dict[str, bool]:
 #  State Persistence
 # ═════════════════════════════════════════════════════════════════════════════
 
-# Keys worth persisting (skip transient __history__, __lastmatch__, etc.)
-_PERSIST_KEYS = {"lang", "topic", "noai", "noai_count"}
+# Keys that are user-global (same value across all personas).
+# When set on ANY persona, auto-propagated to all loaded engines.
+_GLOBAL_KEYS = {"lang", "name", "noai", "noai_count", "onboarded", "welcomed"}
+
+# Keys that are persona-specific (vary per persona for the same user)
+_PERSONA_KEYS = {"topic", "mood"}
+
+# Combined for backward compat with save/restore
+_PERSIST_KEYS = _GLOBAL_KEYS | _PERSONA_KEYS
 
 
 def _state_path(persona: str) -> Path:
     return STATE_DIR / f"{persona}.json"
+
+
+def _global_state_path() -> Path:
+    return STATE_DIR / "_global.json"
 
 
 def _save_state(persona: str) -> None:
@@ -198,23 +209,64 @@ def _save_state(persona: str) -> None:
         logger.warning(f"[engine] Failed to save state for '{persona}': {e}")
 
 
+def _save_global_state() -> None:
+    """Persist global user variables (shared across all personas) to disk."""
+    # Merge global vars from all engines into a single file
+    merged: dict[str, dict[str, str]] = {}
+    for persona, rs in _engines.items():
+        all_vars = rs.get_uservars()
+        if not all_vars or not isinstance(all_vars, dict):
+            continue
+        for uid, udata in all_vars.items():
+            if not isinstance(udata, dict):
+                continue
+            global_filtered = {k: v for k, v in udata.items()
+                               if k in _GLOBAL_KEYS and v and v != "undefined"}
+            if global_filtered:
+                if uid not in merged:
+                    merged[uid] = {}
+                merged[uid].update(global_filtered)
+
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        _global_state_path().write_text(
+            json.dumps(merged, ensure_ascii=False, indent=2)
+        )
+    except Exception as e:
+        logger.warning(f"[engine] Failed to save global state: {e}")
+
+
 def _restore_state(rs: RiveScript, persona: str) -> None:
     """Restore persisted user variables into a freshly loaded engine."""
+    # 1. Restore persona-specific state
     path = _state_path(persona)
-    if not path.exists():
-        return
+    if path.exists():
+        try:
+            state = json.loads(path.read_text())
+            count = 0
+            for uid, udata in state.items():
+                for var, value in udata.items():
+                    rs.set_uservar(uid, var, value)
+                count += 1
+            if count:
+                logger.info(f"[engine] Restored persona state for '{persona}': {count} users")
+        except Exception as e:
+            logger.warning(f"[engine] Failed to restore persona state for '{persona}': {e}")
 
-    try:
-        state = json.loads(path.read_text())
-        count = 0
-        for uid, udata in state.items():
-            for var, value in udata.items():
-                rs.set_uservar(uid, var, value)
-            count += 1
-        if count:
-            logger.info(f"[engine] Restored state for '{persona}': {count} users")
-    except Exception as e:
-        logger.warning(f"[engine] Failed to restore state for '{persona}': {e}")
+    # 2. Overlay global state (takes precedence for global keys)
+    gpath = _global_state_path()
+    if gpath.exists():
+        try:
+            gstate = json.loads(gpath.read_text())
+            gcount = 0
+            for uid, udata in gstate.items():
+                for var, value in udata.items():
+                    rs.set_uservar(uid, var, value)
+                gcount += 1
+            if gcount:
+                logger.info(f"[engine] Restored global state for '{persona}': {gcount} users")
+        except Exception as e:
+            logger.warning(f"[engine] Failed to restore global state for '{persona}': {e}")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -232,6 +284,16 @@ def set_uservar(persona: str, user_id: str, var: str, value: str) -> bool:
     if var == "noai" and value in ("false", "0", ""):
         rs.set_uservar(user_id, "noai_count", "0")
         logger.info(f"[engine] {persona}:{user_id} — AI re-enabled, counter reset")
+
+    # If this is a global variable, propagate to all other loaded engines
+    # so it persists across persona switches without manual carry-over.
+    if var in _GLOBAL_KEYS:
+        for other_persona, other_rs in _engines.items():
+            if other_persona != persona:
+                other_rs.set_uservar(user_id, var, value)
+                if var == "noai" and value in ("false", "0", ""):
+                    other_rs.set_uservar(user_id, "noai_count", "0")
+        _save_global_state()
 
     logger.info(f"[engine] {persona}:{user_id} — set {var}={value}")
     _save_state(persona)
@@ -260,6 +322,11 @@ def set_uservar_all(var: str, value: str) -> dict[str, bool]:
         results[persona] = True
         logger.info(f"[engine] {persona}:* — set {var}={value} for {len(users)} users")
         _save_state(persona)
+
+    # Persist global state for global keys (noai, lang, name, etc.)
+    if var in _GLOBAL_KEYS:
+        _save_global_state()
+
     return results
 
 
@@ -403,8 +470,9 @@ def match(message: str, persona: str, user_id: str = "user") -> dict:
             return {"matched": True, "response": noai_response, "context": context}
         return {"matched": False, "response": None, "context": context}
 
-    # Matched a deterministic trigger — count it
-    _analytics[persona][message.lower().strip()] += 1
+    # Matched a deterministic trigger — count it by trigger pattern (F-39)
+    matched_trigger = rs.last_match(user_id) or message.lower().strip()
+    _analytics[persona][matched_trigger] += 1
     return {"matched": True, "response": reply, "context": context}
 
 
@@ -440,6 +508,10 @@ def _check_noai(rs: RiveScript, user_id: str, context: dict) -> Optional[str]:
         return messages[0]
     elif count == 2:
         logger.info(f"[noai] {user_id}: 2nd fallback — reminding")
+        return messages[1]
+    elif count % 10 == 0:
+        # Re-acknowledge periodically so user isn't permanently silenced
+        logger.info(f"[noai] {user_id}: {count}th fallback — periodic reminder")
         return messages[1]
     else:
         logger.info(f"[noai] {user_id}: {count}th fallback — silence")

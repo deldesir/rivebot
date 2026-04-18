@@ -86,7 +86,7 @@
   + (upgrade|amelyore|chanje plan|change plan|pase pi wo)
   - {topic=form_upgrade}Kilès plan w vle pase? *(Basic · Standard · Premium)*
 
-  // ── Acknowledgments — stay silent ────────────────────────────
+  // ── Acknowledgments — emoji reaction (gateway decides if AI override) ──
   + (ok|okay|ok sa|oke|alright|aight|gotcha|bet|cool|nice|lol|haha|mdrrr)
   - {{silent}}
 

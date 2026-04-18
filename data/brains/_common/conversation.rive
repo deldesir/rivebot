@@ -64,58 +64,58 @@
   // which may not work correctly with this RiveScript fork.
 
   + talk to sales
-  - <set switch_persona=konex-sales>{{persona_switch}}
+  - <set switch_persona=konex-sales><set topic=random>{{persona_switch}}
 
   + talk to sales *
-  - <set switch_persona=konex-sales>{{persona_switch}}
+  - <set switch_persona=konex-sales><set topic=random>{{persona_switch}}
 
   + pale ak vant
-  - <set switch_persona=konex-sales>{{persona_switch}}
+  - <set switch_persona=konex-sales><set topic=random>{{persona_switch}}
 
   + pale ak vant *
-  - <set switch_persona=konex-sales>{{persona_switch}}
+  - <set switch_persona=konex-sales><set topic=random>{{persona_switch}}
 
   + talk to support
-  - <set switch_persona=konex-support>{{persona_switch}}
+  - <set switch_persona=konex-support><set topic=random>{{persona_switch}}
 
   + talk to support *
-  - <set switch_persona=konex-support>{{persona_switch}}
+  - <set switch_persona=konex-support><set topic=random>{{persona_switch}}
 
   + pale ak support
-  - <set switch_persona=konex-support>{{persona_switch}}
+  - <set switch_persona=konex-support><set topic=random>{{persona_switch}}
 
   + pale ak teknik
-  - <set switch_persona=konex-support>{{persona_switch}}
+  - <set switch_persona=konex-support><set topic=random>{{persona_switch}}
 
   + talk to talkprep
-  - <set switch_persona=talkprep>{{persona_switch}}
+  - <set switch_persona=talkprep><set topic=random>{{persona_switch}}
 
   + talk to talkprep *
-  - <set switch_persona=talkprep>{{persona_switch}}
+  - <set switch_persona=talkprep><set topic=random>{{persona_switch}}
 
   + pale ak talkprep
-  - <set switch_persona=talkprep>{{persona_switch}}
+  - <set switch_persona=talkprep><set topic=random>{{persona_switch}}
 
   + talk to coach
-  - <set switch_persona=talkprep>{{persona_switch}}
+  - <set switch_persona=talkprep><set topic=random>{{persona_switch}}
 
   + pale ak coach
-  - <set switch_persona=talkprep>{{persona_switch}}
+  - <set switch_persona=talkprep><set topic=random>{{persona_switch}}
 
   + go back
-  - <set switch_persona=assistant>{{persona_switch}}
+  - <set switch_persona=assistant><set topic=random>{{persona_switch}}
 
   + retounen
-  - <set switch_persona=assistant>{{persona_switch}}
+  - <set switch_persona=assistant><set topic=random>{{persona_switch}}
 
   + back
-  - <set switch_persona=assistant>{{persona_switch}}
+  - <set switch_persona=assistant><set topic=random>{{persona_switch}}
 
   + talk to assistant
-  - <set switch_persona=assistant>{{persona_switch}}
+  - <set switch_persona=assistant><set topic=random>{{persona_switch}}
 
   + pale ak assistant
-  - <set switch_persona=assistant>{{persona_switch}}
+  - <set switch_persona=assistant><set topic=random>{{persona_switch}}
 
   // ── Capabilities ───────────────────────────────────────────
   + (what can you do|what ou ka do|kisa ou ka do)

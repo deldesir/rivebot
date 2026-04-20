@@ -1,0 +1,44 @@
+! version = 2.0
+
+// ═══════════════════════════════════════════════════════════════
+//  General — default persona for authorized non-admin users
+//
+//  Safe, helpful, general-purpose AI assistant.
+//  No admin tools. No persona switching to privileged personas.
+//  Falls through to Hermes AI for most queries.
+// ═══════════════════════════════════════════════════════════════
+
+! local concat = newline
+
+// ── Persona Identity ─────────────────────────────────────────
+! var name    = IIAB Assistant
+! var persona = general
+
+// ── Main Topic (includes shared conversation) ────────────────
+> topic random includes conversation
+
+  // ── Help ─────────────────────────────────────────────────
+  + (help|ede|èd|menu)
+  * <get lang> == en => Here's what I can do:
+  ^ \n
+  ^ \n💬 *Chat* — ask me anything
+  ^ \n🔧 *talk to support* — tech help
+  ^ \n🛒 *talk to sales* — plans & pricing
+  ^ \n
+  ^ \nJust type your question 👇
+  - Men sa m ka fè pou ou:
+  ^ \n
+  ^ \n💬 *Pale* — poze m nenpòt kesyon
+  ^ \n🔧 *pale ak sipò* — ede teknik
+  ^ \n🛒 *pale ak vant* — plan ak pri
+  ^ \n
+  ^ \nJis ekri kesyon w 👇
+
+  // ── Reset ────────────────────────────────────────────────
+  + reset
+  - {@ reset}
+
+  + #reset
+  - {@ reset}
+
+< topic

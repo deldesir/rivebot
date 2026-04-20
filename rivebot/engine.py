@@ -441,7 +441,7 @@ def match(message: str, persona: str, user_id: str = "user") -> dict:
 
     # Intercept macro errors → friendly message
     # Two patterns: "[ERR: Object Not Found]" (unregistered) or "⚠️ Tool error" (HTTP fail)
-    if reply and ("[ERR:" in reply or "⚠️ Tool error" in reply):
+    if reply and (("[ERR:" in reply and "No Reply Matched" not in reply) or "⚠️ Tool error" in reply):
         lang = context.get("lang", "ht")
         friendly = _MACRO_ERROR_MESSAGES.get(lang, _MACRO_ERROR_MESSAGES["ht"])
         _analytics[persona]["_macro_error"] += 1

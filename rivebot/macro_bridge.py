@@ -55,6 +55,9 @@ ALLOWED_MACROS: dict[str, str] = {
     "start_flow":            "/v1/tools/start_flow",
     # Forms
     "submit_form":           "/v1/tools/submit_form",
+    # CRM Operations (ADR-010)
+    "start_crm_ops":         "/v1/tools/start_crm_ops",
+    "send_crm_help":         "/v1/tools/send_crm_help",
 }
 
 

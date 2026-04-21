@@ -1,0 +1,74 @@
+! version = 2.0
+
+// ═══════════════════════════════════════════════════════════════
+//  Admin CRM Operations — ADR-010
+//
+//  Triggers the RapidPro CRM ops flow via the AI Gateway.
+//  Authorization is enforced at the FLOW level (has_group guard),
+//  not at the RiveBot level. This is defense-in-depth:
+//    1. RiveBot triggers the flow for anyone who types "ops menu"
+//    2. The flow's first node checks has_group(Admins)
+//    3. Non-admins get "🚫 Access denied." and the flow ends
+//
+//  The macro returns {{noreply}} so the catch-all flow suppresses
+//  any AI Gateway response. The RapidPro flow takes over the
+//  WhatsApp session entirely.
+//
+//  Loaded in _common/ so it works across ALL personas.
+// ═══════════════════════════════════════════════════════════════
+
+// ── CRM Ops Entry Points ─────────────────────────────────────
+
++ ops menu
+- <call>start_crm_ops</call>
+
++ ops menu *
+- <call>start_crm_ops</call>
+
++ * ops menu
+- <call>start_crm_ops</call>
+
++ * ops menu *
+- <call>start_crm_ops</call>
+
++ admin ops
+- <call>start_crm_ops</call>
+
++ admin ops *
+- <call>start_crm_ops</call>
+
++ * admin ops
+- <call>start_crm_ops</call>
+
++ * admin ops *
+- <call>start_crm_ops</call>
+
++ crm
+- <call>start_crm_ops</call>
+
++ crm *
+- <call>start_crm_ops</call>
+
+// ── CRM Discovery Triggers (Layer A) ─────────────────────────────
+// Matched BEFORE AI fallback when admin asks HOW to access operations.
+// Sends a WuzAPI Quick Reply button with DisplayText="ops menu".
+// When tapped, WhatsApp sends the literal text "ops menu" → RiveBot
+// matches it above → fires start_crm_ops. Zero LLM involvement.
+
++ [*] how [*] crm [*]
+- <call>send_crm_help</call>
+
++ [*] how [*] ops [*]
+- <call>send_crm_help</call>
+
++ [*] admin [*] access [*]
+- <call>send_crm_help</call>
+
++ [*] admin [*] menu [*]
+- <call>send_crm_help</call>
+
++ [*] how [*] manage [*] contact [*]
+- <call>send_crm_help</call>
+
++ [*] how [*] manage [*] workspace [*]
+- <call>send_crm_help</call>

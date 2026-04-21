@@ -452,6 +452,12 @@ def match(message: str, persona: str, user_id: str = "user") -> dict:
         logger.debug(f"[engine] {persona}:{user_id} → silent (no reply)")
         return {"matched": True, "response": "", "context": context}
 
+    # Sentinel: noreply — trigger matched, suppress all output (ADR-010)
+    # Used for CRM ops flow handoff: the RapidPro flow sends its own menu.
+    if reply and reply.strip() == "{{noreply}}":
+        logger.debug(f"[engine] {persona}:{user_id} → noreply (flow handoff)")
+        return {"matched": True, "response": "{{noreply}}", "context": context}
+
     # Sentinel: persona switch request
     if reply and reply.strip() == "{{persona_switch}}":
         target = rs.get_uservar(user_id, "switch_persona")

@@ -7,6 +7,8 @@ call arbitrary code — they can only reference names in ALLOWED_MACROS.
 
 Security model:
   - Whitelist-only: unknown macro names return an error string (not raised).
+  - Auth gate: macros in ADMIN_MACROS require the user to be in the
+    RapidPro 'Admins' group (ADR-011 Finding 3). Verified via cached API call.
   - Timeouts: each macro call has a 10-second timeout.
   - No shell: the RiveScript Perl/JS object handler is disabled entirely.
   - No-arg tools use GET; tools with args use POST with {"_args": [...]}
@@ -15,11 +17,14 @@ Security model:
 
 import asyncio
 import os
+import time
 import httpx
 from loguru import logger
 
 GATEWAY_URL = os.getenv("RIVEBOT_GATEWAY_URL", "http://localhost:8086")
 MACRO_TIMEOUT = float(os.getenv("RIVEBOT_MACRO_TIMEOUT_S", "10"))
+RAPIDPRO_API_URL = os.getenv("RAPIDPRO_API_URL", "http://localhost:8080/api/v2")
+RAPIDPRO_API_TOKEN = os.getenv("RAPIDPRO_API_TOKEN", "")
 
 
 # ── Whitelist ────────────────────────────────────────────────────────
@@ -58,7 +63,72 @@ ALLOWED_MACROS: dict[str, str] = {
     # CRM Operations (ADR-010)
     "start_crm_ops":         "/v1/tools/start_crm_ops",
     "send_crm_help":         "/v1/tools/send_crm_help",
+    # CRM Layer 2 Direct Commands (ADR-011 T2)
+    "crm_list_groups":       "/v1/tools/crm_list_groups",
+    "crm_lookup_contact":    "/v1/tools/crm_lookup_contact",
+    "crm_org_info":          "/v1/tools/crm_org_info",
+    "crm_create_group":      "/v1/tools/crm_create_group",
 }
+
+# ── Admin authorization (ADR-011 Finding 3) ──────────────────────────
+# Macros that require the caller to be in the RapidPro 'Admins' group.
+# Any future Layer 2 direct commands MUST be added here.
+
+ADMIN_MACROS: set[str] = {
+    "start_crm_ops",
+    "send_crm_help",
+    # Layer 2 direct commands (ADR-011 T2)
+    "crm_list_groups",
+    "crm_lookup_contact",
+    "crm_org_info",
+    "crm_create_group",
+}
+
+# Cache: {phone: (is_admin, timestamp)} — 5 min TTL
+_admin_cache: dict[str, tuple[bool, float]] = {}
+_ADMIN_CACHE_TTL = 300  # seconds
+
+
+async def _verify_admin(user_id: str) -> bool:
+    """Check if the user is in the RapidPro 'Admins' group.
+
+    Queries GET /api/v2/contacts.json?urn=whatsapp:{user_id} and checks
+    if any returned group has name 'Admins'. Results are cached for 5 min.
+
+    Falls back to True if the API is unreachable (fail-open for the
+    start_crm_ops case — the flow itself has a has_group guard).
+    """
+    now = time.time()
+    cached = _admin_cache.get(user_id)
+    if cached and (now - cached[1]) < _ADMIN_CACHE_TTL:
+        return cached[0]
+
+    if not RAPIDPRO_API_TOKEN:
+        logger.warning("[auth] RAPIDPRO_API_TOKEN not set — falling back to flow-level auth")
+        return True  # fail-open: flow's has_group guard is the backup
+
+    try:
+        urn = f"whatsapp:{user_id}" if ":" not in user_id else user_id
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(
+                f"{RAPIDPRO_API_URL}/contacts.json",
+                params={"urn": urn},
+                headers={"Authorization": f"Token {RAPIDPRO_API_TOKEN}"},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            results = data.get("results", [])
+            if not results:
+                _admin_cache[user_id] = (False, now)
+                return False
+            groups = results[0].get("groups", [])
+            is_admin = any(g.get("name") == "Admins" for g in groups)
+            _admin_cache[user_id] = (is_admin, now)
+            logger.info(f"[auth] {user_id}: admin={is_admin}")
+            return is_admin
+    except Exception as e:
+        logger.warning(f"[auth] Admin check failed for {user_id}: {e} — falling back to flow-level auth")
+        return True  # fail-open: flow guard is the backup
 
 
 # Context var names tracked between tool calls
@@ -85,6 +155,12 @@ async def call_macro(name: str, args: str, user_id: str,
     if name not in ALLOWED_MACROS:
         logger.warning(f"[macro] Blocked unknown macro: '{name}' from user {user_id}")
         return f"⚠️ Unknown command: `{name}`"
+
+    # ADR-011 Finding 3: Admin authorization gate
+    if name in ADMIN_MACROS:
+        if not await _verify_admin(user_id):
+            logger.warning(f"[auth] Blocked non-admin {user_id} from macro '{name}'")
+            return "🚫 Access denied. Admin only."
 
     path = ALLOWED_MACROS[name]
     headers = {"X-User-Id": user_id}

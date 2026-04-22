@@ -19,6 +19,9 @@
 
 // ── CRM Ops Entry Points ─────────────────────────────────────
 
++ ops
+- <call>start_crm_ops</call>
+
 + ops menu
 - <call>start_crm_ops</call>
 
@@ -72,3 +75,76 @@
 
 + [*] how [*] manage [*] workspace [*]
 - <call>send_crm_help</call>
+
+// ── Static Help Command (ADR-011 Finding 4) ──────────────────────
+// Returns a hardcoded list of available commands. No LLM involved.
+// Updated for Layer 2 direct commands.
+
++ help
+- 📋 *Available Commands:*\n\n*Guided Mode:*\n🔹 *ops* — Open the CRM menu\n\n*Direct Commands:*\n🔹 *list groups* — List all segments\n🔹 *lookup \<phone\>* — Look up a contact\n🔹 *org info* — Show workspace info\n🔹 *create group \<name\>* — Create a segment\n🔹 *help* — Show this list\n\n💡 All commands require admin access.
+
++ help *
+- {@ help}
+
+// ── Layer 2 Direct Commands (ADR-011 T2) ─────────────────────────
+// These bypass the flow system entirely. RiveBot → macro_bridge →
+// Gateway tool → RapidPro API → formatted WhatsApp response.
+// Auth is enforced in macro_bridge.py via _verify_admin().
+
++ list groups
+- <call>crm_list_groups</call>
+
++ list segments
+- <call>crm_list_groups</call>
+
++ lookup *
+- <call>crm_lookup_contact <star></call>
+
++ org info
+- <call>crm_org_info</call>
+
++ org
+- <call>crm_org_info</call>
+
++ create group *
+- <call>crm_create_group <star></call>
+
++ create segment *
+- <call>crm_create_group <star></call>
+
+// ── Near-Miss Error Patterns (ADR-011 Finding 6) ─────────────────
+// Catch partial or incomplete commands BEFORE they fall through to
+// the catch-all → Hermes. Provides actionable syntax hints.
+
++ broadcast to *
+- ⚠️ Broadcast is a guided-only operation.\n\nType *ops* → Messages → Broadcast for safe broadcast with confirmation.
+
++ broadcast
+- ⚠️ Broadcast is a guided-only operation.\n\nType *ops* → Messages → Broadcast for safe broadcast with confirmation.
+
++ lookup
+- ⚠️ Missing phone number.\n\n*Usage:* `lookup <phone number>`
+
++ send to *
+- ⚠️ Send is a guided-only operation.\n\nType *ops* → Messages → Send for safe message delivery.
+
++ send
+- ⚠️ Missing recipient and message.\n\nType *ops* → Messages → Send for guided mode.
+
++ create group
+- ⚠️ Missing segment name.\n\n*Usage:* `create group <name>`
+
++ create segment
+- ⚠️ Missing segment name.\n\n*Usage:* `create segment <name>`
+
++ create
+- ⚠️ Missing what to create.\n\n*Available:* `create group <name>`\n\n💡 Or type *ops* for the full menu.
+
++ delete group
+- ⚠️ Segment deletion requires confirmation.\n\nType *ops* → Segments → Delete for guided mode with safety guard.
+
++ delete
+- ⚠️ Deletion requires confirmation.\n\nType *ops* for the full CRM menu with safety guards.
+
++ list
+- ⚠️ Missing what to list.\n\n*Available:* `list groups`\n\n💡 Or type *ops* for the full menu.

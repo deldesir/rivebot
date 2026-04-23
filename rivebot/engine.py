@@ -58,24 +58,7 @@ _analytics: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 # {persona: {user_id: timestamp}}
 _last_seen: dict[str, dict[str, float]] = defaultdict(dict)
 
-# ── Global NoAI Flag ─────────────────────────────────────────────────────────
-# When True, ALL users (including new ones) are in noai mode.
-# Set via set_uservar_all("noai", "true") / cleared with "false".
-_noai_global: bool = False
 
-# ── NoAI Messages ────────────────────────────────────────────────────────────
-_NOAI_MESSAGES = {
-    "ht": [
-        "⚠️ Sèvis AI nou an pa disponib pou kounye a. N ap travay sou sa. "
-        "Antretan, tape *help* pou wè sa m ka fè pou ou.",
-        "⚙️ AI toujou pa disponib. Tape *help* pou opsyon ki disponib yo.",
-    ],
-    "en": [
-        "⚠️ Our AI service is temporarily unavailable. We're working on it. "
-        "In the meantime, type *help* to see what I can do for you.",
-        "⚙️ AI is still unavailable. Type *help* for available options.",
-    ],
-}
 
 # ── Friendly error for unimplemented macros ──────────────────────────────────
 _MACRO_ERROR_MESSAGES = {
@@ -166,7 +149,7 @@ def reload_all() -> dict[str, bool]:
 
 # Keys that are user-global (same value across all personas).
 # When set on ANY persona, auto-propagated to all loaded engines.
-_GLOBAL_KEYS = {"lang", "name", "noai", "noai_count", "onboarded", "welcomed"}
+_GLOBAL_KEYS = {"lang", "name", "onboarded", "welcomed"}
 
 # Keys that are persona-specific (vary per persona for the same user)
 _PERSONA_KEYS = {"topic", "mood"}
@@ -280,10 +263,7 @@ def set_uservar(persona: str, user_id: str, var: str, value: str) -> bool:
         return False
     rs.set_uservar(user_id, var, value)
 
-    # When disabling noai, reset the counter
-    if var == "noai" and value in ("false", "0", ""):
-        rs.set_uservar(user_id, "noai_count", "0")
-        logger.info(f"[engine] {persona}:{user_id} — AI re-enabled, counter reset")
+
 
     # If this is a global variable, propagate to all other loaded engines
     # so it persists across persona switches without manual carry-over.
@@ -291,8 +271,7 @@ def set_uservar(persona: str, user_id: str, var: str, value: str) -> bool:
         for other_persona, other_rs in _engines.items():
             if other_persona != persona:
                 other_rs.set_uservar(user_id, var, value)
-                if var == "noai" and value in ("false", "0", ""):
-                    other_rs.set_uservar(user_id, "noai_count", "0")
+
         _save_global_state()
 
     logger.info(f"[engine] {persona}:{user_id} — set {var}={value}")
@@ -301,14 +280,7 @@ def set_uservar(persona: str, user_id: str, var: str, value: str) -> bool:
 
 
 def set_uservar_all(var: str, value: str) -> dict[str, bool]:
-    """Set a user variable across ALL personas globally.
-
-    For 'noai', also sets the global flag so NEW users inherit the state.
-    """
-    global _noai_global
-    if var == "noai":
-        _noai_global = (value == "true")
-        logger.info(f"[engine] Global noai flag → {_noai_global}")
+    """Set a user variable across ALL personas globally."""
 
     results = {}
     for persona, rs in _engines.items():
@@ -317,8 +289,7 @@ def set_uservar_all(var: str, value: str) -> dict[str, bool]:
         users = list(all_vars.keys()) if all_vars and isinstance(all_vars, dict) else []
         for uid in users:
             rs.set_uservar(uid, var, value)
-            if var == "noai" and value in ("false", "0", ""):
-                rs.set_uservar(uid, "noai_count", "0")
+
         results[persona] = True
         logger.info(f"[engine] {persona}:* — set {var}={value} for {len(users)} users")
         _save_state(persona)
@@ -331,19 +302,12 @@ def set_uservar_all(var: str, value: str) -> dict[str, bool]:
 
 
 def get_noai_status() -> dict:
-    """Return current noai status for admin visibility."""
-    status = {"global": _noai_global, "users": {}}
-    for persona, rs in _engines.items():
-        all_vars = rs.get_uservars()
-        if not all_vars or not isinstance(all_vars, dict):
-            continue
-        noai_users = []
-        for uid, udata in all_vars.items():
-            if isinstance(udata, dict) and udata.get("noai") == "true":
-                noai_users.append(uid)
-        if noai_users:
-            status["users"][persona] = noai_users
-    return status
+    """Deprecated — noai state is now managed by the AI Gateway circuit breaker.
+
+    This endpoint is kept for backward compatibility but returns an empty status.
+    Query the AI Gateway's /health endpoint for circuit breaker state.
+    """
+    return {"deprecated": True, "message": "noai replaced by gateway circuit breaker"}
 
 
 def get_analytics() -> dict:
@@ -469,11 +433,6 @@ def match(message: str, persona: str, user_id: str = "user") -> dict:
 
     # Sentinel: the brain explicitly delegated to AI
     if not reply or reply.strip() == "{{ai_fallback}}" or reply.startswith("ERR:"):
-        _analytics[persona]["_ai_fallback"] += 1
-        # ── NoAI check: intercept before returning to AI gateway ──
-        noai_response = _check_noai(rs, user_id, context)
-        if noai_response is not None:
-            return {"matched": True, "response": noai_response, "context": context}
         return {"matched": False, "response": None, "context": context}
 
     # Matched a deterministic trigger — count it by trigger pattern (F-39)
@@ -481,47 +440,6 @@ def match(message: str, persona: str, user_id: str = "user") -> dict:
     _analytics[persona][matched_trigger] += 1
     return {"matched": True, "response": reply, "context": context}
 
-
-def _check_noai(rs: RiveScript, user_id: str, context: dict) -> Optional[str]:
-    """Check if AI is disabled for this user and return escalating message.
-
-    Returns:
-        str  — the noai message to send (1st or 2nd time)
-        ""   — empty string = silence (3rd+ time)
-        None — AI is enabled, proceed normally
-    """
-    # Check global flag first (catches new users)
-    noai = rs.get_uservar(user_id, "noai")
-    if noai != "true" and not _noai_global:
-        return None
-
-    # If global is on but user var isn't set, set it now
-    if _noai_global and noai != "true":
-        rs.set_uservar(user_id, "noai", "true")
-
-    # Increment counter
-    count_str = rs.get_uservar(user_id, "noai_count")
-    count = int(count_str) if count_str and count_str.isdigit() else 0
-    count += 1
-    rs.set_uservar(user_id, "noai_count", str(count))
-
-    # Pick language
-    lang = context.get("lang", "ht")
-    messages = _NOAI_MESSAGES.get(lang, _NOAI_MESSAGES["ht"])
-
-    if count == 1:
-        logger.info(f"[noai] {user_id}: 1st fallback — acknowledging")
-        return messages[0]
-    elif count == 2:
-        logger.info(f"[noai] {user_id}: 2nd fallback — reminding")
-        return messages[1]
-    elif count % 10 == 0:
-        # Re-acknowledge periodically so user isn't permanently silenced
-        logger.info(f"[noai] {user_id}: {count}th fallback — periodic reminder")
-        return messages[1]
-    else:
-        logger.info(f"[noai] {user_id}: {count}th fallback — silence")
-        return ""
 
 
 def _build_context(rs: RiveScript, user_id: str) -> dict:
@@ -540,10 +458,7 @@ def _build_context(rs: RiveScript, user_id: str) -> dict:
     else:
         context["topic"] = "random"
 
-    # NoAI flag (user-level or global)
-    noai = rs.get_uservar(user_id, "noai")
-    if noai == "true" or _noai_global:
-        context["noai"] = True
+
 
     # Mood (set by sentiment triggers in conversation.rive)
     mood = rs.get_uservar(user_id, "mood")

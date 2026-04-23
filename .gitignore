@@ -9,3 +9,8 @@ __pycache__/
 dist/
 build/
 data/brains/.userstate/
+
+# Runtime databases
+*.db
+*.db-shm
+*.db-wal

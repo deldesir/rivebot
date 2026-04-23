@@ -79,33 +79,7 @@
 ! sub kisal  = kisa li
 ! sub kisam  = kisa mwen
 
-// ── C. Creole → English semantic bridges ─────────────────────
-// These translate Creole words into English equivalents so that
-// English-language triggers can match Creole input.
-// NOTE: triggers must be written in POST-SUBSTITUTION form.
-! sub montre   = show
-! sub afiche   = show
-! sub ki       = what
-! sub kisa     = what
-! sub m ap     = i will
-! sub tanpri   = please
-! sub wi       = yes
-! sub pa       = not
-! sub anmwey   = help
-! sub ede      = help
-! sub piblikasyon = publications
-! sub ekspòte  = export
-! sub pratike  = practice
-! sub rekòmande = recommend
-! sub rapò     = report
-! sub nan      = in
-! sub fè       = do
-! sub kòmanse  = start
-! sub kreye    = create
-! sub evalye   = evaluate
-! sub telephone = telefon
-! sub video    = videyo
-! sub merci    = mesi
+
 
 // ── D. Verb+pronoun contractions ─────────────────────────────
 // Pattern: verb+w → verb ou | verb+l → verb li | verb+m → verb mwen

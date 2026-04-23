@@ -59,62 +59,90 @@
   ^ \n• *depans* — wè konsomasyon token
 
   // ── Status / My Talks ──────────────────────────────────────
+  // NOTE: Multi-word alternation triggers (e.g. (show|montre) (talks|diskou))
+  // do not work reliably with RiveScript's `topic includes` mechanism.
+  // Use explicit literal redirects for each common phrasing.
+
   + (status|estati)
   @ show talks
 
-  + (show|montre|wè|gade) [my] (talks|talk)
+  + show my talks
   @ show talks
 
-  + show talk my
+  + show my talk
   @ show talks
 
-  + (list|lis) [my] talks
+  + show talk
   @ show talks
 
-  + (my|diskou) (talks|mwen)
+  + montre diskou mwen
+  @ show talks
+
+  + montre diskou mwen yo
+  @ show talks
+
+  + gade diskou mwen
+  @ show talks
+
+  + gade diskou mwen yo
   @ show talks
 
   + diskou mwen yo
   @ show talks
 
-  + what [are] my talks
+  + diskou mwen
   @ show talks
 
-  + what diskou mwen [yo]
+  + list my talks
   @ show talks
 
-  + what diskou mwen
+  + lis diskou mwen
   @ show talks
 
-  + show diskou mwen [yo]
+  + lis diskou mwen yo
   @ show talks
 
-  + show diskou mwen
-  @ show talks
-
-  + montre diskou m
+  + what are my talks
   @ show talks
 
   + show talks
   - <call>talkmaster_status</call>
 
   // ── Publications ───────────────────────────────────────────
-  + (show|montre|wè|gade) (publications|piblikasyon)
+  + show publications
   @ show pubs
 
-  + (list|lis) (publications|piblikasyon)
+  + show piblikasyon
   @ show pubs
 
-  + (publications|piblikasyon)
+  + montre piblikasyon
   @ show pubs
 
-  + what [are the] (books|publications|pubs|piblikasyon|liv)
+  + gade piblikasyon
   @ show pubs
 
-  + what (piblikasyon|liv|dokiman)
+  + list publications
   @ show pubs
 
-  + show (piblikasyon|liv|dokiman)
+  + lis piblikasyon
+  @ show pubs
+
+  + publications
+  @ show pubs
+
+  + piblikasyon
+  @ show pubs
+
+  + ki piblikasyon
+  @ show pubs
+
+  + kisa piblikasyon
+  @ show pubs
+
+  + ki liv
+  @ show pubs
+
+  + ki dokiman
   @ show pubs
 
   + show pubs
@@ -127,7 +155,7 @@
   + (topics|sijè) [in|nan] *
   - <call>list_topics <star2></call>
 
-  + what sijè [in|nan] *
+  + (what|ki|kisa) sijè [in|nan] *
   - <call>list_topics <star></call>
 
   + (show|montre) (topics|sijè) [in|nan] *
@@ -266,7 +294,7 @@
   + konbyen mwen depanse
   @ show cost
 
-  + what depans [mwen]
+  + (what|ki|kisa) depans [mwen]
   @ show cost
 
   + show cost

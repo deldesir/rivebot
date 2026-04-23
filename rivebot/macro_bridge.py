@@ -7,8 +7,11 @@ call arbitrary code — they can only reference names in ALLOWED_MACROS.
 
 Security model:
   - Whitelist-only: unknown macro names return an error string (not raised).
-  - Auth gate: macros in ADMIN_MACROS require the user to be in the
-    RapidPro 'Admins' group (ADR-011 Finding 3). Verified via cached API call.
+  - RBAC gate: macros in ADMIN_MACROS are checked against the ROLES matrix.
+    The caller's RapidPro groups are fetched (cached 5 min) and matched
+    against the per-role allow/deny lists (ADR-011 Tier 3).
+  - Audit log: all ADMIN_MACRO executions are appended to audit.db with
+    timestamp, user, macro, args, status, and duration_ms.
   - Timeouts: each macro call has a 10-second timeout.
   - No shell: the RiveScript Perl/JS object handler is disabled entirely.
   - No-arg tools use GET; tools with args use POST with {"_args": [...]}
@@ -18,6 +21,8 @@ Security model:
 import asyncio
 import os
 import time
+import datetime
+import sqlite3
 import httpx
 from loguru import logger
 
@@ -70,9 +75,24 @@ ALLOWED_MACROS: dict[str, str] = {
     "crm_create_group":      "/v1/tools/crm_create_group",
 }
 
-# ── Admin authorization (ADR-011 Finding 3) ──────────────────────────
-# Macros that require the caller to be in the RapidPro 'Admins' group.
-# Any future Layer 2 direct commands MUST be added here.
+# ── Admin authorization (ADR-011 Finding 3 + Tier 3 RBAC) ─────────────────────
+# Macros that require the caller to be in specific RapidPro groups.
+# Any future Layer 2 direct commands MUST be categorized here.
+
+ROLES: dict[str, dict[str, list[str]]] = {
+    "Admins": {
+        "allow": ["all"],
+        "deny": [],
+    },
+    "Teachers": {
+        "allow": ["crm_lookup_contact", "crm_list_groups", "start_crm_ops", "send_crm_help"],
+        "deny": [],
+    },
+    "Staff": {
+        "allow": ["crm_lookup_contact", "crm_list_groups", "send_crm_help"],
+        "deny": ["start_crm_ops", "crm_create_group"],
+    },
+}
 
 ADMIN_MACROS: set[str] = {
     "start_crm_ops",
@@ -84,27 +104,25 @@ ADMIN_MACROS: set[str] = {
     "crm_create_group",
 }
 
-# Cache: {phone: (is_admin, timestamp)} — 5 min TTL
-_admin_cache: dict[str, tuple[bool, float]] = {}
-_ADMIN_CACHE_TTL = 300  # seconds
+# Cache: {phone: (allowed_macros_set, timestamp)} — 5 min TTL
+_access_cache: dict[str, tuple[set[str], float]] = {}
+_ACCESS_CACHE_TTL = 300  # seconds
 
+async def _verify_access(user_id: str, macro_name: str) -> bool:
+    """Check if the user has permission to execute the macro.
 
-async def _verify_admin(user_id: str) -> bool:
-    """Check if the user is in the RapidPro 'Admins' group.
-
-    Queries GET /api/v2/contacts.json?urn=whatsapp:{user_id} and checks
-    if any returned group has name 'Admins'. Results are cached for 5 min.
-
-    Falls back to True if the API is unreachable (fail-open for the
-    start_crm_ops case — the flow itself has a has_group guard).
+    Queries GET /api/v2/contacts.json?urn=whatsapp:{user_id} and evaluates
+    the returned groups against the ROLES matrix. Results are cached for 5 min.
     """
     now = time.time()
-    cached = _admin_cache.get(user_id)
-    if cached and (now - cached[1]) < _ADMIN_CACHE_TTL:
-        return cached[0]
+    cached = _access_cache.get(user_id)
+    if cached and (now - cached[1]) < _ACCESS_CACHE_TTL:
+        allowed = cached[0]
+        if "all" in allowed: return True
+        return macro_name in allowed
 
     if not RAPIDPRO_API_TOKEN:
-        logger.warning("[auth] RAPIDPRO_API_TOKEN not set — falling back to flow-level auth")
+        logger.warning("[auth] RAPIDPRO_API_TOKEN not set — falling back to fail-open auth")
         return True  # fail-open: flow's has_group guard is the backup
 
     try:
@@ -118,17 +136,68 @@ async def _verify_admin(user_id: str) -> bool:
             resp.raise_for_status()
             data = resp.json()
             results = data.get("results", [])
-            if not results:
-                _admin_cache[user_id] = (False, now)
-                return False
-            groups = results[0].get("groups", [])
-            is_admin = any(g.get("name") == "Admins" for g in groups)
-            _admin_cache[user_id] = (is_admin, now)
-            logger.info(f"[auth] {user_id}: admin={is_admin}")
-            return is_admin
+            
+            allowed_macros = set()
+            denied_macros = set()
+            
+            if results:
+                groups = [g.get("name") for g in results[0].get("groups", [])]
+                for g_name in groups:
+                    if g_name in ROLES:
+                        role = ROLES[g_name]
+                        allowed_macros.update(role["allow"])
+                        denied_macros.update(role["deny"])
+            
+            final_allowed = allowed_macros - denied_macros
+            
+            _access_cache[user_id] = (final_allowed, now)
+            logger.info(f"[auth] {user_id}: allowed_macros={final_allowed}")
+            
+            if "all" in final_allowed:
+                return True
+            return macro_name in final_allowed
     except Exception as e:
-        logger.warning(f"[auth] Admin check failed for {user_id}: {e} — falling back to flow-level auth")
-        return True  # fail-open: flow guard is the backup
+        logger.warning(f"[auth] Access check failed for {user_id}: {e} — falling back")
+        return True  # fail-open
+
+
+# ── Audit Logging (ADR-011 Tier 3) ────────────────────────────────────────────
+
+AUDIT_DB_PATH = os.getenv("RIVEBOT_AUDIT_DB", "/opt/iiab/rivebot/data/audit.db")
+
+def _init_audit_db():
+    try:
+        os.makedirs(os.path.dirname(AUDIT_DB_PATH), exist_ok=True)
+        with sqlite3.connect(AUDIT_DB_PATH) as conn:
+            conn.execute('''
+                CREATE TABLE IF NOT EXISTS audit_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp DATETIME,
+                    user_id TEXT,
+                    macro TEXT,
+                    args TEXT,
+                    status TEXT,
+                    duration_ms INTEGER
+                )
+            ''')
+    except Exception as e:
+        logger.error(f"[audit] Failed to init DB: {e}")
+
+_init_audit_db()
+
+async def _log_audit_async(user_id: str, macro: str, args: str, status: str, duration_ms: int):
+    def _write():
+        try:
+            with sqlite3.connect(AUDIT_DB_PATH) as conn:
+                conn.execute(
+                    "INSERT INTO audit_log (timestamp, user_id, macro, args, status, duration_ms) VALUES (?, ?, ?, ?, ?, ?)",
+                    (datetime.datetime.utcnow().isoformat(), user_id, macro, args, status, duration_ms)
+                )
+        except Exception as e:
+            logger.error(f"[audit] Log write failed: {e}")
+    
+    await asyncio.to_thread(_write)
+
 
 
 # Context var names tracked between tool calls
@@ -152,15 +221,19 @@ async def call_macro(name: str, args: str, user_id: str,
     Returns:
         String response from the tool, or an error message.
     """
+    start_time = time.time()
+
     if name not in ALLOWED_MACROS:
         logger.warning(f"[macro] Blocked unknown macro: '{name}' from user {user_id}")
         return f"⚠️ Unknown command: `{name}`"
 
-    # ADR-011 Finding 3: Admin authorization gate
+    # ADR-011 Finding 3 + Tier 3 RBAC: Admin authorization gate
     if name in ADMIN_MACROS:
-        if not await _verify_admin(user_id):
-            logger.warning(f"[auth] Blocked non-admin {user_id} from macro '{name}'")
-            return "🚫 Access denied. Admin only."
+        if not await _verify_access(user_id, name):
+            logger.warning(f"[auth] Blocked {user_id} from macro '{name}' (RBAC denied)")
+            duration_ms = int((time.time() - start_time) * 1000)
+            await _log_audit_async(user_id, name, args, "DENIED", duration_ms)
+            return "🚫 Access denied."
 
     path = ALLOWED_MACROS[name]
     headers = {"X-User-Id": user_id}
@@ -176,6 +249,7 @@ async def call_macro(name: str, args: str, user_id: str,
 
     arg_list = args.strip().split() if args.strip() else []
 
+    status = "SUCCESS"
     try:
         async with httpx.AsyncClient(timeout=MACRO_TIMEOUT) as client:
             if arg_list:
@@ -190,14 +264,23 @@ async def call_macro(name: str, args: str, user_id: str,
             data = resp.json()
             return data.get("result") or data.get("response") or str(data)
     except httpx.TimeoutException:
+        status = "TIMEOUT"
         logger.error(f"[macro] Timeout calling '{name}'")
         return f"⏱️ Tool `{name}` timed out. Try again."
     except httpx.HTTPStatusError as e:
+        status = f"HTTP_{e.response.status_code}"
         logger.error(f"[macro] HTTP error calling '{name}': {e.response.status_code}")
         return f"⚠️ Tool error ({e.response.status_code})."
     except Exception as e:
+        status = "ERROR"
         logger.error(f"[macro] Unexpected error calling '{name}': {e}")
         return f"⚠️ Could not run `{name}`."
+    finally:
+        if name in ADMIN_MACROS:
+            duration_ms = int((time.time() - start_time) * 1000)
+            # Use await (not create_task) — create_task() tasks are cancelled
+            # when asyncio.run() closes the event loop in call_macro_sync().
+            await _log_audit_async(user_id, name, args, status, duration_ms)
 
 
 def call_macro_sync(name: str, args: str, user_id: str = "user",

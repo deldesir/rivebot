@@ -557,24 +557,11 @@ def _build_context(rs: RiveScript, user_id: str) -> dict:
     onboarded = rs.get_uservar(user_id, "onboarded")
     context["onboarded"] = onboarded == "true"
 
-    # Conversation history — last 3 exchanges
-    history = []
-    try:
-        user_data = rs.get_uservars(user_id)
-        if user_data and isinstance(user_data, dict):
-            hist = user_data.get("__history__", {})
-            inputs = hist.get("input", [])
-            replies = hist.get("reply", [])
-            for i in range(min(3, len(inputs))):
-                inp = inputs[i] if i < len(inputs) else None
-                rep = replies[i] if i < len(replies) else None
-                if inp and inp != "undefined" and rep and rep != "undefined":
-                    if "{{ai_fallback}}" not in rep:
-                        history.append({"user": inp, "bot": rep})
-    except Exception:
-        pass
-
-    if history:
-        context["history"] = history
+    # NOTE: RiveScript's __history__ stores post-substitution, punctuation-stripped
+    # input (e.g. "what's" → "what is", "ki" → "what"). We intentionally do NOT
+    # include it here — the AI Gateway's session file (maintained by openai.py via
+    # _persist_rivebot_turn) stores the original unmodified user text and is
+    # the correct source for Hermes conversation history.
+    # See ADR-011 / bug analysis: substituted history corrupts Hermes context.
 
     return context

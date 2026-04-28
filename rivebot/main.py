@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from loguru import logger
+import httpx
 
 load_dotenv()  # Load .env if present (no-op in production where systemd sets env)
 
@@ -87,6 +88,26 @@ async def match_intent(req: MatchRequest) -> dict:
     except Exception:
         logger.exception(f"Error in /match for persona={req.persona}")
         return {"matched": False, "response": None, "context": {}}
+
+
+@app.get("/get-var")
+async def get_var(persona: str, user: str, var: str) -> dict:
+    """Read a single RiveScript user variable.
+
+    Used by the Gateway's Social-Code simulation tools to read
+    per-user state (trust score, mood, dossier, etc.) during drills.
+
+    Example:
+        GET /get-var?persona=social-code&user=whatsapp:+509...&var=sim_trust
+    """
+    rs = engine.get_engine(persona)
+    if rs is None:
+        raise HTTPException(status_code=404, detail=f"No brain for persona '{persona}'")
+
+    value = rs.get_uservar(user, var)
+    if value is None or value == "undefined":
+        return {"value": "", "found": False}
+    return {"value": value, "found": True}
 
 
 @app.post("/set-var")
@@ -206,6 +227,74 @@ async def stale_sessions(max_age_hours: float = 24.0) -> dict:
     Example: GET /stale-sessions?max_age_hours=12
     """
     return engine.get_stale_sessions(max_age_hours)
+
+
+@app.post("/admin-assign")
+async def admin_assign(request: dict):
+    """Assign or remove a user from the RapidPro Admins group.
+    Called by the Gateway's macro_admin tool."""
+    from .macro_bridge import RAPIDPRO_API_URL, RAPIDPRO_API_TOKEN
+    target_urn = request.get("urn", "")
+    action = request.get("action", "add")  # "add" or "remove"
+    
+    if not RAPIDPRO_API_TOKEN:
+        raise HTTPException(status_code=503, detail="RAPIDPRO_API_TOKEN not configured")
+    
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        # 1. Fetch target contact UUID
+        resp = await client.get(
+            f"{RAPIDPRO_API_URL}/contacts.json",
+            params={"urn": target_urn},
+            headers={"Authorization": f"Token {RAPIDPRO_API_TOKEN}"},
+        )
+        resp.raise_for_status()
+        results = resp.json().get("results", [])
+        if not results:
+            raise HTTPException(status_code=404, detail=f"Contact not found: {target_urn}")
+        
+        contact_uuid = results[0]["uuid"]
+        
+        # 2. Fetch Admins group UUID
+        gresp = await client.get(
+            f"{RAPIDPRO_API_URL}/groups.json",
+            params={"name": "Admins"},
+            headers={"Authorization": f"Token {RAPIDPRO_API_TOKEN}"},
+        )
+        gresp.raise_for_status()
+        groups = gresp.json().get("results", [])
+        if not groups:
+            raise HTTPException(status_code=404, detail="RapidPro 'Admins' group not found")
+        
+        admin_group_uuid = groups[0]["uuid"]
+        
+        # 3. Use contact_actions.json (correct RapidPro v2 API for group changes)
+        rp_action = "add" if action == "add" else "remove"
+        await client.post(
+            f"{RAPIDPRO_API_URL}/contact_actions.json",
+            json={
+                "contacts": [contact_uuid],
+                "action": rp_action,
+                "group": admin_group_uuid,
+            },
+            headers={"Authorization": f"Token {RAPIDPRO_API_TOKEN}"},
+        )
+        
+        # 4. Flush auth cache so change takes effect immediately
+        from .macro_bridge import _access_cache
+        # Cache is keyed by the raw phone digits, not the URN
+        cache_key = target_urn.split(":")[-1].replace("+", "")
+        _access_cache.pop(cache_key, None)
+    
+    return {"status": "ok", "action": action, "urn": target_urn}
+
+
+@app.post("/flush-auth-cache")
+async def flush_auth_cache():
+    """Flush the RBAC access cache. Called after admin changes or reload."""
+    from .macro_bridge import _access_cache
+    count = len(_access_cache)
+    _access_cache.clear()
+    return {"status": "ok", "cleared": count}
 
 
 @app.get("/health")

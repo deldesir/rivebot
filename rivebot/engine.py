@@ -82,6 +82,67 @@ def _load_directory(rs: RiveScript, directory: Path) -> int:
     return count
 
 
+import httpx
+import os
+
+def _sync_plugin_manifest():
+    """Fetch plugin manifest from Gateway and update macro_bridge whitelists.
+    
+    Uses atomic reference swapping to avoid race conditions with concurrent
+    call_macro invocations.
+    """
+    gateway_url = os.getenv("RIVEBOT_GATEWAY_URL", "http://localhost:8086")
+    gateway_key = os.getenv("GATEWAY_INTERNAL_KEY", "")
+    
+    try:
+        headers = {"X-API-Key": gateway_key} if gateway_key else {}
+        resp = httpx.get(
+            f"{gateway_url}/v1/system/plugins/manifest",
+            timeout=5.0,
+            headers=headers,
+        )
+        if resp.status_code != 200:
+            logger.warning(f"[engine] Manifest fetch failed: {resp.status_code}")
+            return None
+        
+        manifest = resp.json().get("plugins", [])
+        
+        # Build NEW dicts/sets — don't mutate the live ones
+        new_allowed = {}
+        new_admin = set()
+        rive_lines = []
+        
+        for plugin in manifest:
+            name = plugin["name"]
+            new_allowed[name] = f"/v1/tools/{name}"
+            if plugin.get("admin_only"):
+                new_admin.add(name)
+            
+            # Generate RiveScript trigger
+            trigger = plugin.get("trigger", "")
+            if trigger:
+                rive_lines.append(f"+ {trigger}")
+                rive_lines.append(f"- <call>{name}</call>")
+                rive_lines.append("")
+            
+            # Generate near-miss patterns (F-9)
+            for miss in plugin.get("near_miss", []):
+                rive_lines.append(f"+ {miss}")
+                rive_lines.append(f"- <call>{name}</call>")
+                rive_lines.append("")
+        
+        # Atomic swap — safe for concurrent readers
+        import rivebot.macro_bridge as mb
+        mb.ALLOWED_MACROS = {**mb.ALLOWED_MACROS, **new_allowed}
+        mb.ADMIN_MACROS = mb.ADMIN_MACROS | new_admin
+        
+        logger.info(f"[engine] Merged {len(manifest)} plugins into macro_bridge")
+        return "\n".join(rive_lines) if rive_lines else None
+        
+    except Exception as e:
+        logger.error(f"[engine] Failed to load plugin manifest: {e}")
+        return None
+
 def _build_engine(persona: str) -> Optional[RiveScript]:
     """Load and compile a RiveScript engine for a persona."""
     brain_file = BRAINS_DIR / f"{persona}.rive"
@@ -101,6 +162,11 @@ def _build_engine(persona: str) -> Optional[RiveScript]:
 
     # 2. Load common conversation triggers
     common = _load_directory(rs, BRAINS_DIR / "_common")
+
+    # 2b. Load dynamically generated plugin triggers
+    plugin_rive = _sync_plugin_manifest()
+    if plugin_rive:
+        rs.stream(plugin_rive)
 
     # 3. Load persona-specific brain
     rs.stream(brain_file.read_text())
@@ -149,7 +215,7 @@ def reload_all() -> dict[str, bool]:
 
 # Keys that are user-global (same value across all personas).
 # When set on ANY persona, auto-propagated to all loaded engines.
-_GLOBAL_KEYS = {"lang", "name", "onboarded", "welcomed"}
+_GLOBAL_KEYS = {"lang", "name", "onboarded", "welcomed", "current_drill"}
 
 # Keys that are persona-specific (vary per persona for the same user)
 _PERSONA_KEYS = {"topic", "mood"}
@@ -458,8 +524,10 @@ def _build_context(rs: RiveScript, user_id: str) -> dict:
     else:
         context["topic"] = "random"
 
-
-
+    # Current drill (dynamic persona injection)
+    current_drill = rs.get_uservar(user_id, "current_drill")
+    if current_drill and current_drill != "undefined":
+        context["current_drill"] = current_drill
     # Mood (set by sentiment triggers in conversation.rive)
     mood = rs.get_uservar(user_id, "mood")
     if mood and mood != "undefined":

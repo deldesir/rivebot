@@ -1,0 +1,132 @@
+! version = 2.0
+
+// ═══════════════════════════════════════════════════════════════
+//  System & Config commands — _common/ (loaded for ALL personas)
+//
+//  ADR-011 migration: replaces legacy #/prefix command dispatch.
+//  Auth enforced in macro_bridge, not here.
+//
+//  Tiers:
+//    T3 (user-self): reset, debug, noai, enableai
+//    T2 (admin): sysadmin reload, sysadmin health, etc.
+// ═══════════════════════════════════════════════════════════════
+
+// ── User-Self (T3, no auth needed) ──────────────────────────
+
++ reset
+- <call>macro_reset</call>
+
++ debug
+- <call>macro_debug</call>
+
++ noai
+- <call>macro_noai</call>
+
++ noai all
+- <call>macro_noai_global</call>
+
++ noai status
+- <call>macro_noai_status</call>
+
++ enableai
+- <call>macro_enableai</call>
+
++ enableai all
+- <call>macro_enableai_global</call>
+
+// ── Admin System Ops (T2, RBAC-gated) ──────────────────────────
+
+// F-8: Use sysadmin prefix to avoid collision with persona-specific triggers
++ sysadmin reload
+- <call>macro_reload</call>
+
++ sysadmin health
+- <call>macro_health</call>
+
+// F-9: Near-miss fuzzy patterns for common typos
++ [*] sysadmin reload [*]
+- <call>macro_reload</call>
+
++ [*] sysadmin health [*]
+- <call>macro_health</call>
+
++ sysadmin skills
+- <call>macro_skills list</call>
+
++ sysadmin skills *
+- <call>macro_skills <star></call>
+
++ sysadmin flow *
+- <call>macro_flow <star></call>
+
+// ── Admin Config Ops (T2, RBAC-gated) ────────────────────────
+
++ sysadmin persona *
+- <call>macro_persona <star></call>
+
++ sysadmin channel *
+- <call>macro_channel <star></call>
+
++ sysadmin admin *
+- <call>macro_admin <star></call>
+
++ sysadmin global *
+- <call>macro_global <star></call>
+
++ sysadmin label *
+- <call>macro_label <star></call>
+
+// ── Near-Miss Patterns (H-2: updated to reference sysadmin prefix) ────
+
++ sysadmin persona
+- ⚠️ Usage: `sysadmin persona list` | `sysadmin persona show <name>` | `sysadmin persona create <slug> <style> | <instruction>` | `sysadmin persona delete <name>`
+
++ sysadmin channel
+- ⚠️ Usage: `sysadmin channel list` | `sysadmin channel assign <phone> <persona>`
+
++ sysadmin admin
+- ⚠️ Usage: `sysadmin admin list` | `sysadmin admin add <user>` | `sysadmin admin remove <user>`
+
++ sysadmin flow
+- ⚠️ Usage: `sysadmin flow start <uuid>` | `sysadmin flow stop`
+
++ sysadmin global
+- ⚠️ Usage: `sysadmin global get <key>` | `sysadmin global set <key> <value>`
+
++ sysadmin label
+- ⚠️ Usage: `sysadmin label add <name>`
+
+// ── Legacy catch-all: bare commands redirect to sysadmin prefix ────
+
++ persona
+- ⚠️ Did you mean `sysadmin persona list`?
+
++ persona *
+- ⚠️ Did you mean `sysadmin persona <star>`?
+
++ channel
+- ⚠️ Did you mean `sysadmin channel list`?
+
++ channel *
+- ⚠️ Did you mean `sysadmin channel <star>`?
+
++ admin
+- ⚠️ Did you mean `sysadmin admin list`?
+
++ admin *
+- ⚠️ Did you mean `sysadmin admin <star>`?
+
++ reload
+- ⚠️ Did you mean `sysadmin reload`?
+
++ flow *
+- ⚠️ Did you mean `sysadmin flow <star>`?
+
++ global
+- ⚠️ Did you mean `sysadmin global get <key>`?
+
++ global *
+- ⚠️ Did you mean `sysadmin global <star>`?
+
++ label *
+- ⚠️ Did you mean `sysadmin label <star>`?

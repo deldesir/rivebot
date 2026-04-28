@@ -1,0 +1,132 @@
+! version = 2.0
+
+// ═══════════════════════════════════════════════════════════════
+//  Organized — Congregation scheduling persona
+//
+//  Layer 1: RapidPro "Organized Menu" flow (started via macro)
+//  Layer 2: Direct text commands via macros (below)
+//  Layer 3: Hermes AI fallback for complex queries
+//
+//  ADR-012 Phase 3 — Full 16/16 domain coverage
+// ═══════════════════════════════════════════════════════════════
+
+! local concat = newline
+
+// ── Persona Identity ─────────────────────────────────────────
+! var name    = Organized
+! var persona = organized
+
+// ── Substitutions (normalize Creole → canonical triggers) ────
+! sub bonjou = hello
+! sub bonswa = hello
+! sub hi = hello
+! sub hey = hello
+! sub sak pase = hello
+! sub koman ou ye = how are you
+! sub kijan ou ye = how are you
+
+// ── Main Topic ───────────────────────────────────────────────
+> topic random includes conversation
+
+  // ── Persona Identity (overrides conversation.rive) ─────────
+  + who are you
+  * <get lang> == en => I'm the Organized bot! I help manage the congregation's meeting schedules and assignments. 🏢
+  - Mwen se bot Organized! Mwen ede jere pwogram reyinyon yo ak asiyasyon yo. 🏢
+
+  // ── Help / Menu (Layer 1 — starts RapidPro flow) ───────────
+  + (help|ede|èd|menu|organized)
+  - <call>macro_organized_menu</call>
+
+  // ══════════════════════════════════════════════════════════════
+  //  Layer 2: Deterministic Macros — MEETINGS & SCHEDULE
+  // ══════════════════════════════════════════════════════════════
+
+  + (my schedule|my assignments|pwogram mwen|asiyasyon mwen)
+  - <call>macro_get_my_assignments</call>
+
+  + (this week|semèn sa|semen sa a|schedule|pwogram|horè)
+  - <call>macro_get_schedule</call>
+
+  + (next week|semèn pwochen|semen pwochèn)
+  - <call>macro_get_next_week</call>
+
+  + (material|studying|what are we studying|materyèl|ki sa n ap etidye)
+  - <call>macro_get_sources</call>
+
+  + (attendance|prezans|meeting attendance)
+  - <call>macro_get_attendance</call>
+
+  // ══════════════════════════════════════════════════════════════
+  //  Layer 2: Deterministic Macros — PERSONAL
+  // ══════════════════════════════════════════════════════════════
+
+  + (my group|group mwen|gwoup mwen|field group)
+  - <call>macro_get_field_group</call>
+
+  + (my report|rapò mwen|rapo mwen|field report)
+  - <call>macro_get_field_report</call>
+
+  + (my studies|bible studies|etid biblik mwen)
+  - <call>macro_get_bible_studies</call>
+
+  + (notifications|notifikasyon|noti)
+  - <call>macro_get_notifications</call>
+
+  // ══════════════════════════════════════════════════════════════
+  //  Layer 2: Deterministic Macros — SEARCH & PEOPLE
+  // ══════════════════════════════════════════════════════════════
+
+  + search *
+  - <call>macro_search_persons <star></call>
+
+  + chèche *
+  - <call>macro_search_persons <star></call>
+
+  // ══════════════════════════════════════════════════════════════
+  //  Layer 2: Deterministic Macros — EVENTS
+  // ══════════════════════════════════════════════════════════════
+
+  + (events|what is coming up|upcoming|evènman|ki sa k ap vini)
+  - <call>macro_get_events</call>
+
+  // ══════════════════════════════════════════════════════════════
+  //  Layer 2: Deterministic Macros — SPEAKERS
+  // ══════════════════════════════════════════════════════════════
+
+  + (visiting speakers|speakers|oratè vizitè|oratè)
+  - <call>macro_get_visiting_speakers</call>
+
+  + (partner congregations|congregations|kongregasyon patnè)
+  - <call>macro_get_speakers_congregations</call>
+
+  // ══════════════════════════════════════════════════════════════
+  //  Layer 2: Deterministic Macros — REPORTS (admin-level)
+  // ══════════════════════════════════════════════════════════════
+
+  + (congregation report|cong report|rapò kongregasyon)
+  - <call>macro_get_cong_report</call>
+
+  + (branch report|rapò branch)
+  - <call>macro_get_branch_report</call>
+
+  + (delegated reports|rapò delege)
+  - <call>macro_get_delegated_reports</call>
+
+  + (congregation analysis|cong analysis|analiz kongregasyon)
+  - <call>macro_get_cong_analysis</call>
+
+  // ══════════════════════════════════════════════════════════════
+  //  Layer 3: Complex queries → Hermes AI
+  // ══════════════════════════════════════════════════════════════
+
+  + who is *
+  - {{hermes}} Who is assigned to <star> this week?
+
+  + ki moun ki *
+  - {{hermes}} Ki moun ki gen pati <star> semèn sa?
+
+  // ── Fallback to Hermes for anything else ───────────────────
+  + *
+  - {{hermes}} <star>
+
+< topic

@@ -1,0 +1,95 @@
+// Social-Code — Unified Social Skills Training Brain
+// ADR-014: Single persona for all 10 drill types
+// Topics handle mode switching; Hermes handles AI simulation.
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Help & Navigation
+// ════════════════════════════════════════════════════════════════════════════
+
++ (help|ed|aide|#help)
+- 🎯 *Social Skills Training*\n
+  ^ \n📱 Available apps:\n
+  ^ \n🗣️ *st* — Small Talk (conversation practice)\n
+  ^ \n🎭 *conductor* — Group dynamics training\n
+  ^ \n⚔️ *debate* — Debate Club (argumentation)\n
+  ^ \n💬 *deep* — Deep Talk (meaningful conversations)\n
+  ^ \n❤️ *empathy* — Empathy Lab (emotional intelligence)\n
+  ^ \n🧲 *magnet* — Social Magnetism (charisma)\n
+  ^ \n🤝 *negotiator* — Negotiation skills\n
+  ^ \n📖 *story* — Story Teller (narrative skills)\n
+  ^ \n🧠 *wit* — Wit Gym (humor training)\n
+  ^ \n📊 *archive* — View your training history\n
+  ^ \n\nType any app name to start. Type *#score* for stats.
+
++ (bonjou|hello|hi|alo|bonswa|hey)
+- 👋 Welcome to Social Skills Training!\n
+  ^ \nI'm your coach. Type *help* to see all training apps.\n
+  ^ \nOr type *st* to jump straight into Small Talk practice.
+
+// ════════════════════════════════════════════════════════════════════════════
+//  App Selection → Topic Routing
+// ════════════════════════════════════════════════════════════════════════════
+
++ (st|small talk|konvesasyon|small_talk)
+- {topic=small_talk}🗣️ *Small Talk Training* activated.\n
+  ^ \nType *drill* for a quick practice round, or *chat* for a full simulation.\n
+  ^ \nDifficulty: 🟢 Basic | 🟡 Intermediate | 🟠 Advanced | 🔴 Mastery
+
++ (conductor|konduktè)
+- {topic=conductor}🎭 *Conductor* — Group Dynamics activated.\n
+  ^ \nType *start* to begin a group scenario.
+
++ (debate|deba|debate club)
+- {topic=debate_club}⚔️ *Debate Club* activated.\n
+  ^ \nModes: *steelman* | *questions* | *disagree*
+
++ (deep|deep talk|konvèsasyon pwofon)
+- {topic=deep_talk}💬 *Deep Talk* activated.\n
+  ^ \nType *start* to begin a deep conversation exercise.
+
++ (empathy|empati|empathy lab)
+- {topic=empathy_lab}❤️ *Empathy Lab* activated.\n
+  ^ \nModes: *mirror* | *decode* | *translate* | *bridge*
+
++ (magnet|magnetism|chàm)
+- {topic=magnet}🧲 *Magnet* — Social Magnetism activated.\n
+  ^ \nType *start* to begin a charisma exercise.
+
++ (negotiator|negosyatè|negotiate)
+- {topic=negotiator}🤝 *Negotiator* activated.\n
+  ^ \nModes: *anchor* | *concession* | *deadline*
+
++ (story|story teller|istwa)
+- {topic=story_teller}📖 *Story Teller* activated.\n
+  ^ \nType *start* to begin a narrative exercise.
+
++ (wit|wit gym|blag)
+- {topic=wit}🧠 *Wit Gym* activated.\n
+  ^ \nType *start* to begin humor training.
+
++ (archive|achiv|stats|statistics)
+- {topic=archive}📊 Fetching your training archive...{@sim_score}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Drill Commands (within topics — these fall through to Hermes for AI)
+// ════════════════════════════════════════════════════════════════════════════
+
++ (drill|start|pratik|kòmanse)
+- <noreply>
+
++ (chat|simulation|simulate)
+- <noreply>
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Score / Stats macro (works across all apps)
+// ════════════════════════════════════════════════════════════════════════════
+
++ (#score|score|pwen|my stats)
+- <noreply>
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Fallback — pass to Hermes AI for simulation turns
+// ════════════════════════════════════════════════════════════════════════════
+
++ *
+- <noreply>

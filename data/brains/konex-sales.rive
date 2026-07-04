@@ -1,13 +1,14 @@
 ! version = 2.0
 
 // ═══════════════════════════════════════════════════════════════
-//  Konex Sales — persona: konex-sales
+//  Novadah Sales — persona: konex-sales
+//  Retail storefront: product requests, no fictional catalog.
 // ═══════════════════════════════════════════════════════════════
 
 ! local concat = newline
 
 // ── Persona Identity ─────────────────────────────────────────
-! var name    = Konex Sales
+! var name    = Novadah Sales
 ! var persona = sales
 
 // ── Main Topic (includes shared conversation) ────────────────
@@ -15,53 +16,27 @@
 
   // ── Help ───────────────────────────────────────────────────
   + (help|ede|èd)
-  * <get lang> == en => 👋 *Konex Sales — I can help with:*
+  * <get lang> == en => 👋 *Novadah — I can help with:*
   ^ \n
-  ^ \n• *plans* — view all plans
-  ^ \n• *upgrade* — change your plan
-  ^ \n• *promo* — available promotions
-  ^ \n• *my account* — your account info
+  ^ \n• *request* — ask for a product (we check availability & price)
+  ^ \n• *my account* — your info
   ^ \n
-  ^ \nOr ask me anything about our services!
-  - 👋 *Konex Sales — Mwen ka ede w ak:*
+  ^ \nOr just tell me what you're looking for!
+  - 👋 *Novadah — Mwen ka ede w ak:*
   ^ \n
-  ^ \n• *plans* / *forfè* — wè tout plan yo
-  ^ \n• *upgrade* / *monte* — chanje plan w
-  ^ \n• *promo* / *pwomosyon* — pwomosyon ki disponib
-  ^ \n• *kont mwen* / *my account* — enfòmasyon kont ou
+  ^ \n• *demann* / *request* — mande yon pwodwi (n ap tcheke disponiblite ak pri)
+  ^ \n• *kont mwen* / *my account* — enfòmasyon ou
   ^ \n
-  ^ \nOswa mande m nenpòt kesyon sou sèvis nou!
+  ^ \nOswa jis di m sa w ap chèche!
 
-  // ── Plan Information ───────────────────────────────────────
-  + (plans|plan|forfait|forfè)
-  - 📱 *Plan Konex yo:*
-  ^ \n
-  ^ \n• *Basic* — 250 HTG/mwa (1GB, 50 min)
-  ^ \n• *Standard* — 500 HTG/mwa (5GB, unlimited min)
-  ^ \n• *Premium* — 1000 HTG/mwa (unlimited data + min)
-  ^ \n
-  ^ \nTape *upgrade* pou chanje plan w!
+  // ── Product request (replaces the fictional plans/upgrade) ──
+  + (request|demann|demand|pwodwi|product|achte|buy|order|kòmand) [*]
+  * <get lang> == en => {topic=form_request}What are you looking for? (product, quantity)
+  - {topic=form_request}Kisa w ap chèche? (pwodwi, kantite)
 
-  + (price|pri|konbyen|combien) [*]
-  @ plans
-
-  + what pri [*]
-  @ plans
-
-  + what pri
-  @ plans
-
-  + konbyen plan yo [*]
-  @ plans
-
-  // ── Upgrade / Promotions ───────────────────────────────────
-  + (upgrade|monte|chanje plan) [*]
-  - 🚀 Kite m ede w monte plan w!
-  ^ \nEkri *plans* pou wè opsyon yo, epi di m kilès w vle.
-
-  + (promo|pwomosyon|promotion|deal) [*]
-  - 🎉 Pa gen pwomosyon aktif pou kounye a.
-  ^ \nTcheке ankò pita oswa tape *plans* pou wè plan yo!
+  + (plans|plan|forfait|forfè|price|pri|konbyen|combien|promo|pwomosyon|promotion|deal) [*]
+  * <get lang> == en => 🛍️ Tell me what product you need and I'll check availability and price for you — type *request* to start.
+  - 🛍️ Di m ki pwodwi w bezwen epi n ap tcheke disponiblite ak pri pou ou — ekri *demann* pou kòmanse.
 
   // ── Account / Profile ──────────────────────────────────────
   + (my|mon) (account|kont|profil|profile)
@@ -79,12 +54,7 @@
   + fetch account
   - 📋 *Kont ou:*
   ^ \nNon: <get name>
-  ^ \nPlan: —
-  ^ \n\nPou plis enfòmasyon, kontakte sipò: tape *talk to support*
-
-  // ── Upgrade Form ──────────────────────────────────────────
-  + (upgrade|amelyore|chanje plan|change plan|pase pi wo)
-  - {topic=form_upgrade}Kilès plan w vle pase? *(Basic · Standard · Premium)*
+  ^ \n\nPou plis enfòmasyon, ekri *support*.
 
   // ── Acknowledgments — emoji reaction (gateway decides if AI override) ──
   + (ok|okay|ok sa|oke|alright|aight|gotcha|bet|cool|nice|lol|haha|mdrrr)

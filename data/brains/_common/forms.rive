@@ -6,7 +6,7 @@
 //
 //  Available forms:
 //    • form_support  — open a support ticket (konex-support)
-//    • form_upgrade  — request a plan upgrade (konex-sales)
+//    • form_request  — request a product (konex-sales / Novadah)
 //
 //  The submit_form macro calls the AI Gateway's /forms endpoint
 //  to persist and route the submission.
@@ -25,7 +25,7 @@
   * <get lang> == en => Please describe your issue briefly:
   - Dekri pwoblèm ou an an kèk mo:
 
-  + _
+  + *
   - <set form_issue=<star>>{topic=form_support_confirm}
   ^ \n📝 *Rezime:* <get form_issue>
   ^ \nKonfime? Tape *wi* pou soumèt oswa *non* pou rekòmanse.
@@ -51,45 +51,46 @@
 
 
 // ══════════════════════════════════════════════
-//  Plan Upgrade Form
+//  Product Request Form (Novadah)
 // ══════════════════════════════════════════════
 
-> topic form_upgrade
+> topic form_request
 
-  // Step 1: Which plan?
+  // Step 1: What product?
   + start
-  - Kilès plan w vle pase? *(Basic · Standard · Premium)*
+  * <get lang> == en => What are you looking for? (product, quantity)
+  - Kisa w ap chèche? (pwodwi, kantite)
 
-  + (basic|standard|premium)
-  - <set form_plan=<star>>{topic=form_upgrade_contact}
-  ^ \n📱 Plan chwazi: *<get form_plan>*
-  ^ \nKilès nimewo w ap itilize a?
+  + *
+  - <set form_item=<star>>{topic=form_request_contact}
+  ^ \n🛒 Demann: *<get form_item>*
+  ^ \nKi nimewo pou n kontakte w?
 
 < topic
 
 
-> topic form_upgrade_contact
+> topic form_request_contact
 
-  // Step 2: Phone number for the upgrade
-  + _
-  - <set form_phone=<star>>{topic=form_upgrade_confirm}
+  // Step 2: Contact number
+  + *
+  - <set form_phone=<star>>{topic=form_request_confirm}
   ^ \n✅ *Rezime:*
-  ^ \n• Plan: *<get form_plan>*
+  ^ \n• Pwodwi: *<get form_item>*
   ^ \n• Nimewo: *<get form_phone>*
   ^ \nKonfime? Tape *wi* oswa *non*.
 
 < topic
 
 
-> topic form_upgrade_confirm
+> topic form_request_confirm
 
   + (wi|yes|oui|ok|dakò)
-  - <call>submit_form upgrade <get form_plan> <get form_phone></call>
+  - <call>submit_form request <get form_item> <get form_phone></call>
   ^ {topic=random}
 
   + (non|no|nan)
-  * <get lang> == en => <set form_plan=><set form_phone=>{topic=form_upgrade}Ok, let's restart. Which plan?
-  - <set form_plan=><set form_phone=>{topic=form_upgrade}Ok, rekòmanse. Kilès plan?
+  * <get lang> == en => <set form_item=><set form_phone=>{topic=form_request}Ok, let's restart. What are you looking for?
+  - <set form_item=><set form_phone=>{topic=form_request}Ok, rekòmanse. Kisa w ap chèche?
 
   + *
   * <get lang> == en => Type *wi* to confirm or *non* to restart.

@@ -542,9 +542,9 @@ def _build_context(rs: RiveScript, user_id: str) -> dict:
 
     # NOTE: RiveScript's __history__ stores post-substitution, punctuation-stripped
     # input (e.g. "what's" → "what is", "ki" → "what"). We intentionally do NOT
-    # include it here — the AI Gateway's session file (maintained by openai.py via
-    # _persist_rivebot_turn) stores the original unmodified user text and is
-    # the correct source for Hermes conversation history.
+    # include it here — the AI Gateway persists RiveBot turns into Hermes'
+    # state.db (openai.py _persist_rivebot_turn → SessionDB), which stores the
+    # original unmodified user text and is the source Hermes actually loads.
     # See ADR-011 / bug analysis: substituted history corrupts Hermes context.
 
     return context

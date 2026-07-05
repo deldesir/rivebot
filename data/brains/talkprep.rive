@@ -32,9 +32,11 @@
   ^ \n• *show publications* — browse source documents
   ^ \n• *list topics [pub]* — see talks in a publication
   ^ \n• *import talk [name]* — start a new talk
-  ^ \n• *use talk [id]* — switch active talk
+  ^ \n• *use talk [number]* — pick your talk (e.g. use talk 50)
   ^ \n• *create revision [name] [audience]* — tailor for audience
-  ^ \n• *develop section [name]* — write a section (AI)
+  ^ \n• *set golden thread [message]* — your one-sentence central idea
+  ^ \n• *challenge section [name]* — coaching on YOUR draft
+  ^ \n• *develop section [name]* — AI reference draft
   ^ \n• *evaluate talk* — score your talk (AI)
   ^ \n• *rehearsal* — coaching tips (AI)
   ^ \n• *export* — generate final manuscript
@@ -48,9 +50,11 @@
   ^ \n• *piblikasyon* — navigate dokiman sous
   ^ \n• *sijè nan [pub]* — wè diskou nan yon piblikasyon
   ^ \n• *enpòte diskou [non]* — komanso yon diskou
-  ^ \n• *itilize diskou [id]* — chwazi yon diskou aktif
+  ^ \n• *itilize diskou [nimewo]* — chwazi diskou w (egz: itilize diskou 50)
   ^ \n• *kreye revizyon [non] [odyans]* — adapte pou odyans
-  ^ \n• *devlope seksyon [non]* — ekri yon seksyon (AI)
+  ^ \n• *mete fil wouj [mesaj]* — ide santral ou an yon fraz
+  ^ \n• *defi seksyon [non]* — konsèy sou bouyon PA W
+  ^ \n• *devlope seksyon [non]* — bouyon referans AI
   ^ \n• *evalye diskou* — nòt diskou w (AI)
   ^ \n• *repete* — konsèy pou pratik (AI)
   ^ \n• *ekspòte* — jenere maniskri final
@@ -240,6 +244,23 @@
 
   + (revise|revize) *
   - <call>create_revision <star2></call>
+
+  // ── Golden Thread (YOUR central message) ───────────────────
+  + (set|deklare|mete) golden thread *
+  - <call>set_golden_thread <star2></call>
+
+  + (set|deklare|mete) (fil wouj|mesaj santral) *
+  - <call>set_golden_thread <star3></call>
+
+  + golden thread *
+  - <call>set_golden_thread <star>
+
+  + (fil wouj|mesaj santral) *
+  - <call>set_golden_thread <star2></call>
+
+  // ── Challenge Section (Socratic coaching on YOUR draft) ────
+  + (challenge|defi|konteste|kesyone) [section|seksyon] *
+  - <call>challenge_section <star2></call>
 
   // ── Develop Section ────────────────────────────────────────
   + (develop|devlope) [section|seksyon] *

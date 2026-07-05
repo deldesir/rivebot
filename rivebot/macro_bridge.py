@@ -50,8 +50,10 @@ ALLOWED_MACROS: dict[str, str] = {
     # TalkPrep — Stage 2
     "create_revision":       "/v1/tools/create_revision",
     # TalkPrep — Stage 3
+    "challenge_section":     "/v1/tools/challenge_section",
     "develop_section":       "/v1/tools/develop_section",
     # TalkPrep — Stage 4
+    "set_golden_thread":     "/v1/tools/set_golden_thread",
     "evaluate_talk":         "/v1/tools/evaluate_talk",
     "get_evaluation_scores": "/v1/tools/get_evaluation_scores",
     # TalkPrep — Stage 5
@@ -401,8 +403,11 @@ STAGE_TRANSITIONS: dict[str, str] = {
     "select_active_talk": "stage_1",
     # Completing Stage 2 (revision created)
     "create_revision":    "stage_2",
-    # Completing Stage 3 (section development started)
+    # Completing Stage 3 (drafting / coaching)
+    "challenge_section":  "stage_3",
     "develop_section":    "stage_3",
+    # Completing Stage 4 setup (golden thread declared)
+    "set_golden_thread":  "stage_3",
     # Completing Stage 4 (evaluation run)
     "evaluate_talk":      "stage_4",
     # Completing Stage 5 (rehearsal started)

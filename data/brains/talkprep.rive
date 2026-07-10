@@ -24,6 +24,21 @@
 > topic random includes conversation
 
   // ── Help ───────────────────────────────────────────────────
+  + (gid|guide)
+  @ help
+
+  + kijan sa mache
+  @ help
+
+  + kijan pou m prepare *
+  @ help
+
+  + kijan pou mwen prepare *
+  @ help
+
+  + how do i prepare *
+  @ help
+
   + (help|ede|èd)
   * <get lang> == en => 📚 *TalkPrep — How to use me:*
   ^ \n
@@ -37,12 +52,14 @@
   ^ \n• *set golden thread [message]* — your one-sentence central idea
   ^ \n• *challenge section [name]* — coaching on YOUR draft
   ^ \n• *develop section [name]* — AI reference draft
-  ^ \n• *evaluate talk* — score your talk (AI)
-  ^ \n• *rehearsal* — coaching tips (AI)
+  ^ \n• *evaluate talk* — self-score first, then the rubric scores YOUR draft
+  ^ \n• *rehearsal* — delivery cues; send a VOICE NOTE for timing analysis
   ^ \n• *export* — generate final manuscript
   ^ \n• *generate anki deck* — memory flashcards
   ^ \n• *push to siyuan* — export to SiYuan
   ^ \n• *cost* — see token usage
+  ^ \n
+  ^ \n📖 Full step-by-step guide: SiYuan → Life → *🎙️ Gid — Preparasyon Diskou*
   - 📚 *TalkPrep — Koman w ka itilize m:*
   ^ \n
   ^ \n• *montre diskou mwen* — lis diskou w yo
@@ -55,12 +72,14 @@
   ^ \n• *mete fil wouj [mesaj]* — ide santral ou an yon fraz
   ^ \n• *defi seksyon [non]* — konsèy sou bouyon PA W
   ^ \n• *devlope seksyon [non]* — bouyon referans AI
-  ^ \n• *evalye diskou* — nòt diskou w (AI)
-  ^ \n• *repete* — konsèy pou pratik (AI)
+  ^ \n• *evalye diskou* — bay nòt pa w anvan, apre sa rubrik la evalye bouyon w
+  ^ \n• *repete* — konsèy livrezon; voye yon NÒT VOKAL pou analiz tan ak poz
   ^ \n• *ekspòte* — jenere maniskri final
   ^ \n• *kreye kat anki [pub]* — kat mèmwa
   ^ \n• *voye nan siyuan [pub]* — ekspòte nan SiYuan
   ^ \n• *depans* — wè konsomasyon token
+  ^ \n
+  ^ \n📖 Gid konplè a etap pa etap: SiYuan → Life → *🎙️ Gid — Preparasyon Diskou*
 
   // ── Status / My Talks ──────────────────────────────────────
   // NOTE: Multi-word alternation triggers (e.g. (show|montre) (talks|diskou))

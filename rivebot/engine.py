@@ -457,8 +457,14 @@ def match(message: str, persona: str, user_id: str = "user") -> dict:
             return fallback
 
     rs = _engines[persona]
+    # RiveScript matching is line-oriented: wildcards don't span newlines, so
+    # a multiline message (an email's "Subject: ..." + body) matches NOTHING —
+    # not even `+ *` — and produces "[ERR: No Reply Matched]". Collapse
+    # internal whitespace before matching; the original message is untouched
+    # for the AI-fallback path.
+    normalized = " ".join(message.split())
     try:
-        reply = rs.reply(user_id, message)
+        reply = rs.reply(user_id, normalized)
     except Exception as e:
         logger.error(f"[engine] RiveScript error for '{persona}': {e}")
         return fallback
@@ -497,8 +503,11 @@ def match(message: str, persona: str, user_id: str = "user") -> dict:
             logger.info(f"[engine] {persona}:{user_id} → persona switch to '{target}'")
             return {"matched": True, "response": None, "context": context}
 
-    # Sentinel: the brain explicitly delegated to AI
-    if not reply or reply.strip() == "{{ai_fallback}}" or reply.startswith("ERR:"):
+    # Sentinel: the brain explicitly delegated to AI. RiveScript's own
+    # no-match error arrives BRACKETED ("[ERR: No Reply Matched]") — it must
+    # fall through to the AI, never be sent to a human as a reply.
+    if (not reply or reply.strip() == "{{ai_fallback}}" or reply.startswith("ERR:")
+            or "no reply matched" in reply.lower()):
         return {"matched": False, "response": None, "context": context}
 
     # Matched a deterministic trigger — count it by trigger pattern (F-39)

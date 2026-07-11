@@ -93,7 +93,6 @@ ALLOWED_MACROS: dict[str, str] = {
     # ── Config operations (ADR-011 migration, T2) ────────────────
     "macro_persona":         "/v1/tools/macro_persona",
     "macro_channel":         "/v1/tools/macro_channel",
-    "macro_admin":           "/v1/tools/macro_admin",
     "macro_global":          "/v1/tools/macro_global",
     "macro_label":           "/v1/tools/macro_label",
     # ── Organized persona (ADR-012) ──────────────────────────────
@@ -127,6 +126,10 @@ ALLOWED_MACROS: dict[str, str] = {
 # Macros that require the caller to be in specific RapidPro groups.
 # Any future Layer 2 direct commands MUST be categorized here.
 
+# NOTE: this matrix gates the BRIDGE only. The gateway's tools API re-checks
+# every call against per-caller toolsets (persona allowed_urns + access-grant
+# tiers) and is the final authority — "all" here still 403s on operator-only
+# toolsets (config, system, organized) for non-operators.
 ROLES: dict[str, dict[str, list[str]]] = {
     "Admins": {
         "allow": ["all"],
@@ -154,7 +157,7 @@ ADMIN_MACROS: set[str] = {
     "macro_noai_global", "macro_enableai_global", "macro_noai_status",
     "macro_reload", "macro_health", "macro_skills", "macro_flow",
     # Config admin ops (ADR-011 migration)
-    "macro_persona", "macro_channel", "macro_admin",
+    "macro_persona", "macro_channel",
     "macro_global", "macro_label",
     # Organized admin reports (ADR-012) — sensitive aggregate data
     "macro_get_cong_report", "macro_get_branch_report",

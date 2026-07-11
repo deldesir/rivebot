@@ -97,17 +97,23 @@ ALLOWED_MACROS: dict[str, str] = {
     "macro_global":          "/v1/tools/macro_global",
     "macro_label":           "/v1/tools/macro_label",
     # ── Organized persona (ADR-012) ──────────────────────────────
+    # The gateway registry renamed these to organized_* — the URL side must
+    # use the registry name or every call 404s ("Unknown tool"). The macro
+    # name (left side) stays macro_* because the .rive brains call it.
+    "macro_get_schedule":             "/v1/tools/organized_schedule",
+    "macro_get_next_week":            "/v1/tools/organized_next_week",
+    "macro_get_my_assignments":       "/v1/tools/organized_my_assignments",
+    "macro_search_persons":           "/v1/tools/organized_search_persons",
+    "macro_get_events":               "/v1/tools/organized_events",
+    "macro_get_visiting_speakers":    "/v1/tools/organized_visiting_speakers",
+    # These have no gateway registry entry yet (functions exist in
+    # app/graph/tools/organized.py but were never registered with schemas)
+    # — they 404 until registered:
     "macro_organized_menu":           "/v1/tools/macro_organized_menu",
-    "macro_get_schedule":             "/v1/tools/macro_get_schedule",
-    "macro_get_next_week":            "/v1/tools/macro_get_next_week",
-    "macro_get_my_assignments":       "/v1/tools/macro_get_my_assignments",
-    "macro_search_persons":           "/v1/tools/macro_search_persons",
-    "macro_get_events":               "/v1/tools/macro_get_events",
     "macro_get_sources":              "/v1/tools/macro_get_sources",
     "macro_get_field_group":          "/v1/tools/macro_get_field_group",
     "macro_get_attendance":           "/v1/tools/macro_get_attendance",
     "macro_get_field_report":         "/v1/tools/macro_get_field_report",
-    "macro_get_visiting_speakers":    "/v1/tools/macro_get_visiting_speakers",
     "macro_get_speakers_congregations": "/v1/tools/macro_get_speakers_congregations",
     "macro_get_cong_report":          "/v1/tools/macro_get_cong_report",
     "macro_get_branch_report":        "/v1/tools/macro_get_branch_report",

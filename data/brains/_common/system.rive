@@ -67,8 +67,10 @@
 + sysadmin channel *
 - <call>macro_channel <star></call>
 
+// Admin promotion retired here — access grants are the one promotion path
+// (operator-only, via the assistant persona's `access` tool).
 + sysadmin admin *
-- <call>macro_admin <star></call>
+- ⚠️ `sysadmin admin` retire. Sèvi ak asistan an: `access grant <nimewo> <member|staff|teacher|admin>` oswa `access revoke <nimewo>`.
 
 + sysadmin global *
 - <call>macro_global <star></call>
@@ -85,7 +87,7 @@
 - ⚠️ Usage: `sysadmin channel list` | `sysadmin channel assign <phone> <persona>`
 
 + sysadmin admin
-- ⚠️ Usage: `sysadmin admin list` | `sysadmin admin add <user>` | `sysadmin admin remove <user>`
+- ⚠️ `sysadmin admin` retire. Sèvi ak asistan an: `access grant <nimewo> <tier>` | `access revoke <nimewo>` | `access list`
 
 + sysadmin flow
 - ⚠️ Usage: `sysadmin flow start <uuid>` | `sysadmin flow stop`

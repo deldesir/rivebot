@@ -105,21 +105,18 @@ ALLOWED_MACROS: dict[str, str] = {
     "macro_search_persons":           "/v1/tools/organized_search_persons",
     "macro_get_events":               "/v1/tools/organized_events",
     "macro_get_visiting_speakers":    "/v1/tools/organized_visiting_speakers",
-    # These have no gateway registry entry yet (functions exist in
-    # app/graph/tools/organized.py but were never registered with schemas)
-    # — they 404 until registered:
-    "macro_organized_menu":           "/v1/tools/macro_organized_menu",
-    "macro_get_sources":              "/v1/tools/macro_get_sources",
-    "macro_get_field_group":          "/v1/tools/macro_get_field_group",
-    "macro_get_attendance":           "/v1/tools/macro_get_attendance",
-    "macro_get_field_report":         "/v1/tools/macro_get_field_report",
-    "macro_get_speakers_congregations": "/v1/tools/macro_get_speakers_congregations",
-    "macro_get_cong_report":          "/v1/tools/macro_get_cong_report",
-    "macro_get_branch_report":        "/v1/tools/macro_get_branch_report",
-    "macro_get_delegated_reports":    "/v1/tools/macro_get_delegated_reports",
-    "macro_get_cong_analysis":        "/v1/tools/macro_get_cong_analysis",
-    "macro_get_bible_studies":        "/v1/tools/macro_get_bible_studies",
-    "macro_get_notifications":        "/v1/tools/macro_get_notifications",
+    "macro_organized_menu":           "/v1/tools/organized_menu",
+    "macro_get_sources":              "/v1/tools/organized_sources",
+    "macro_get_field_group":          "/v1/tools/organized_field_group",
+    "macro_get_attendance":           "/v1/tools/organized_attendance",
+    "macro_get_field_report":         "/v1/tools/organized_field_report",
+    "macro_get_speakers_congregations": "/v1/tools/organized_speakers_congregations",
+    "macro_get_cong_report":          "/v1/tools/organized_cong_report",
+    "macro_get_branch_report":        "/v1/tools/organized_branch_report",
+    "macro_get_delegated_reports":    "/v1/tools/organized_delegated_reports",
+    "macro_get_cong_analysis":        "/v1/tools/organized_cong_analysis",
+    "macro_get_bible_studies":        "/v1/tools/organized_bible_studies",
+    "macro_get_notifications":        "/v1/tools/organized_notifications",
 }
 
 # ── Admin authorization (ADR-011 Finding 3 + Tier 3 RBAC) ─────────────────────

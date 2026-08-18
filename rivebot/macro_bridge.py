@@ -76,6 +76,10 @@ ALLOWED_MACROS: dict[str, str] = {
     "crm_lookup_contact":    "/v1/tools/crm_lookup_contact",
     "crm_org_info":          "/v1/tools/crm_org_info",
     "crm_create_group":      "/v1/tools/crm_create_group",
+    # Team contact sync — deliberately NOT in ADMIN_MACROS: any team member may
+    # request their own team's directory. The gateway authorizes on `Team: *`
+    # RapidPro group membership.
+    "macro_sync":            "/v1/tools/contact_sync",
     # ── System operations (ADR-011 migration) ────────────────────
     # User-self (T3, NOT in ADMIN_MACROS)
     "macro_reset":           "/v1/tools/macro_reset",

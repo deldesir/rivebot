@@ -1,0 +1,34 @@
+! version = 2.0
+
+// ═══════════════════════════════════════════════════════════════
+//  Team contact sync — _common/ (loaded for ALL personas)
+//
+//  A team member asks for their team's contact directory and the
+//  gateway emails it back as a .vcf attachment.
+//
+//  NOT RBAC-gated in macro_bridge: any team member may request
+//  their OWN team's directory. The gateway authorizes on `Team: *`
+//  RapidPro group membership and refuses everyone else.
+//
+//  The printed QR code resolves to a WhatsApp chat that sends
+//  "sync" — so scanning it lands on the bare trigger below.
+// ═══════════════════════════════════════════════════════════════
+
++ sync
+- <call>macro_sync</call>
+
++ kontak
+- <call>macro_sync</call>
+
++ contacts
+- <call>macro_sync</call>
+
+// Named team: "sync alpha" / "kontak alpha"
++ sync *
+- <call>macro_sync <star></call>
+
++ kontak *
+- <call>macro_sync <star></call>
+
++ contacts *
+- <call>macro_sync <star></call>

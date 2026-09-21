@@ -32,3 +32,12 @@
 
 + contacts *
 - <call>macro_sync <star></call>
+
+// Operator only: deliver pending directory updates to every member now,
+// instead of waiting for the daily check. Gated twice: ADMIN_MACROS here, and
+// the gateway's operator-only `config` toolset. Deliberately not starting
+// with sync/kontak/contacts, so it can never be read as a directory request.
++ push contacts
+- <call>macro_sync_push</call>
++ voye kontak
+- <call>macro_sync_push</call>

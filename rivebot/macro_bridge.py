@@ -80,6 +80,9 @@ ALLOWED_MACROS: dict[str, str] = {
     # request their own team's directory. The gateway authorizes on `Team: *`
     # RapidPro group membership.
     "macro_sync":            "/v1/tools/contact_sync",
+    # Operator push of pending directory updates — in ADMIN_MACROS below, and the
+    # gateway registers it in its operator-only `config` toolset.
+    "macro_sync_push":       "/v1/tools/contact_sync_push",
     # ── System operations (ADR-011 migration) ────────────────────
     # User-self (T3, NOT in ADMIN_MACROS)
     "macro_reset":           "/v1/tools/macro_reset",
@@ -160,6 +163,8 @@ ADMIN_MACROS: set[str] = {
     # Config admin ops (ADR-011 migration)
     "macro_persona", "macro_channel",
     "macro_global", "macro_label",
+    # Contact directory: deliver pending updates to every member now
+    "macro_sync_push",
     # Organized admin reports (ADR-012) — sensitive aggregate data
     "macro_get_cong_report", "macro_get_branch_report",
     "macro_get_delegated_reports", "macro_get_cong_analysis",

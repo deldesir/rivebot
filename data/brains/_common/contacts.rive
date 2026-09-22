@@ -49,3 +49,9 @@
 - <call>macro_ict_close <star></call>
 + close ticket *
 - <call>macro_ict_close <star></call>
+
+// Operator only: data-quality report on the directory, by email.
++ check contacts
+- <call>macro_contact_check</call>
++ verifye kontak
+- <call>macro_contact_check</call>

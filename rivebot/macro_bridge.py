@@ -86,6 +86,7 @@ ALLOWED_MACROS: dict[str, str] = {
     # Operator closes an ICT request ticket by number — in ADMIN_MACROS below, and
     # the gateway keeps the tool in its operator-only `config` toolset.
     "macro_ict_close":       "/v1/tools/ict_close",
+    "macro_contact_check":   "/v1/tools/contact_check",
     # ── System operations (ADR-011 migration) ────────────────────
     # User-self (T3, NOT in ADMIN_MACROS)
     "macro_reset":           "/v1/tools/macro_reset",
@@ -170,6 +171,8 @@ ADMIN_MACROS: set[str] = {
     "macro_sync_push",
     # ICT requests: close a ticket
     "macro_ict_close",
+    # Contact directory: data-quality report by email
+    "macro_contact_check",
     # Organized admin reports (ADR-012) — sensitive aggregate data
     "macro_get_cong_report", "macro_get_branch_report",
     "macro_get_delegated_reports", "macro_get_cong_analysis",

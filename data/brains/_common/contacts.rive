@@ -41,3 +41,11 @@
 - <call>macro_sync_push</call>
 + voye kontak
 - <call>macro_sync_push</call>
+
+// Operator only: close an ICT request ticket, e.g. "ferme 12 câble remplacé".
++ ferme *
+- <call>macro_ict_close <star></call>
++ fèmen *
+- <call>macro_ict_close <star></call>
++ close ticket *
+- <call>macro_ict_close <star></call>

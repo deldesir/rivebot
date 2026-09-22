@@ -83,6 +83,9 @@ ALLOWED_MACROS: dict[str, str] = {
     # Operator push of pending directory updates — in ADMIN_MACROS below, and the
     # gateway registers it in its operator-only `config` toolset.
     "macro_sync_push":       "/v1/tools/contact_sync_push",
+    # Operator closes an ICT request ticket by number — in ADMIN_MACROS below, and
+    # the gateway keeps the tool in its operator-only `config` toolset.
+    "macro_ict_close":       "/v1/tools/ict_close",
     # ── System operations (ADR-011 migration) ────────────────────
     # User-self (T3, NOT in ADMIN_MACROS)
     "macro_reset":           "/v1/tools/macro_reset",
@@ -165,6 +168,8 @@ ADMIN_MACROS: set[str] = {
     "macro_global", "macro_label",
     # Contact directory: deliver pending updates to every member now
     "macro_sync_push",
+    # ICT requests: close a ticket
+    "macro_ict_close",
     # Organized admin reports (ADR-012) — sensitive aggregate data
     "macro_get_cong_report", "macro_get_branch_report",
     "macro_get_delegated_reports", "macro_get_cong_analysis",
